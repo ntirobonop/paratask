@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
@@ -68,11 +69,12 @@ data class TaskDraft(
 @Composable
 fun InboxRoute(
     taskRepository: TaskRepository,
+    snackbarHostState: SnackbarHostState,
+    onOpenTask: (TaskId) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: InboxViewModel = viewModel(factory = InboxViewModel.factory(taskRepository)),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
     var showQuickAdd by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(viewModel, snackbarHostState) {
@@ -105,6 +107,7 @@ fun InboxRoute(
             showQuickAdd = false
         },
         onCompleteTask = viewModel::completeTask,
+        onOpenTask = onOpenTask,
         modifier = modifier,
     )
 }
@@ -119,6 +122,7 @@ fun InboxScreen(
     onDismissQuickAdd: () -> Unit,
     onCreateTask: (TaskDraft) -> Unit,
     onCompleteTask: (TaskId) -> Unit,
+    onOpenTask: (TaskId) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -140,6 +144,7 @@ fun InboxScreen(
         InboxContent(
             uiState = uiState,
             onCompleteTask = onCompleteTask,
+            onOpenTask = onOpenTask,
             contentPadding = contentPadding,
         )
     }
@@ -156,6 +161,7 @@ fun InboxScreen(
 private fun InboxContent(
     uiState: InboxUiState,
     onCompleteTask: (TaskId) -> Unit,
+    onOpenTask: (TaskId) -> Unit,
     contentPadding: PaddingValues,
 ) {
     when {
@@ -191,7 +197,11 @@ private fun InboxContent(
                 items = uiState.tasks,
                 key = { task -> task.id.value },
             ) { task ->
-                TaskRow(task = task, onCompleteTask = onCompleteTask)
+                TaskRow(
+                    task = task,
+                    onCompleteTask = onCompleteTask,
+                    onOpenTask = onOpenTask,
+                )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
         }
@@ -202,10 +212,12 @@ private fun InboxContent(
 private fun TaskRow(
     task: Task,
     onCompleteTask: (TaskId) -> Unit,
+    onOpenTask: (TaskId) -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onOpenTask(task.id) }
             .padding(vertical = 10.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -366,6 +378,7 @@ private fun InboxEmptyPreview() {
             onDismissQuickAdd = {},
             onCreateTask = {},
             onCompleteTask = {},
+            onOpenTask = {},
         )
     }
 }
@@ -394,6 +407,7 @@ private fun InboxWithTasksPreview() {
             onDismissQuickAdd = {},
             onCreateTask = {},
             onCompleteTask = {},
+            onOpenTask = {},
         )
     }
 }

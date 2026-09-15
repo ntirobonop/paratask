@@ -21,5 +21,8 @@ interface TaskRepository {
         completed: Boolean,
     )
 
-    suspend fun deleteTask(id: TaskId)
+    suspend fun setDeleted(
+        id: TaskId,
+        deleted: Boolean,
+    )
 }

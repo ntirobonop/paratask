@@ -42,6 +42,7 @@ class InboxScreenTest {
                     onDismissQuickAdd = {},
                     onCreateTask = {},
                     onCompleteTask = {},
+                    onOpenTask = {},
                 )
             }
         }
@@ -68,6 +69,7 @@ class InboxScreenTest {
                         showQuickAdd = false
                     },
                     onCompleteTask = {},
+                    onOpenTask = {},
                 )
             }
         }
@@ -112,6 +114,7 @@ class InboxScreenTest {
                     onDismissQuickAdd = {},
                     onCreateTask = {},
                     onCompleteTask = { completedTaskId = it },
+                    onOpenTask = {},
                 )
             }
         }
@@ -121,6 +124,42 @@ class InboxScreenTest {
 
         composeRule.runOnIdle {
             assertEquals(taskId, completedTaskId)
+        }
+    }
+
+    @Test
+    fun `task row opens selected task`() {
+        val taskId = TaskId("task")
+        var openedTaskId: TaskId? = null
+        composeRule.setContent {
+            MaterialTheme {
+                InboxScreen(
+                    uiState = InboxUiState(
+                        tasks = listOf(
+                            Task(
+                                id = taskId,
+                                title = "Купить продукты",
+                                createdAt = NOW,
+                                updatedAt = NOW,
+                            ),
+                        ),
+                        isLoading = false,
+                    ),
+                    snackbarHostState = SnackbarHostState(),
+                    showQuickAdd = false,
+                    onAddTask = {},
+                    onDismissQuickAdd = {},
+                    onCreateTask = {},
+                    onCompleteTask = {},
+                    onOpenTask = { openedTaskId = it },
+                )
+            }
+        }
+
+        composeRule.onNodeWithText("Купить продукты").performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(taskId, openedTaskId)
         }
     }
 

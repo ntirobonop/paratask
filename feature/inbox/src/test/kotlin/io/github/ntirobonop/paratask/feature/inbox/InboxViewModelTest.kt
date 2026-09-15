@@ -114,8 +114,13 @@ private class FakeTaskRepository(
         publish()
     }
 
-    override suspend fun deleteTask(id: TaskId) {
-        allTasks[id] = checkNotNull(allTasks[id]).copy(deletedAt = NOW)
+    override suspend fun setDeleted(
+        id: TaskId,
+        deleted: Boolean,
+    ) {
+        allTasks[id] = checkNotNull(allTasks[id]).copy(
+            deletedAt = NOW.takeIf { deleted },
+        )
         publish()
     }
 

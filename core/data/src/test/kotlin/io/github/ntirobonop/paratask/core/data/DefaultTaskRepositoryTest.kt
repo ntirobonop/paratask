@@ -60,6 +60,19 @@ class DefaultTaskRepositoryTest {
         assertEquals(listOf(taskId), repository.observeInbox().first().map { it.id })
         assertNull(repository.observeTask(taskId).first()?.completedAt)
     }
+
+    @Test
+    fun deletionRemovesTaskFromInboxAndCanBeUndone() = runTest {
+        repository.createTask("Task")
+
+        repository.setDeleted(taskId, deleted = true)
+        assertTrue(repository.observeInbox().first().isEmpty())
+        assertEquals(instant, repository.observeTask(taskId).first()?.deletedAt)
+
+        repository.setDeleted(taskId, deleted = false)
+        assertEquals(listOf(taskId), repository.observeInbox().first().map { it.id })
+        assertNull(repository.observeTask(taskId).first()?.deletedAt)
+    }
 }
 
 private class FakeTaskDao : TaskDao {
@@ -97,9 +110,9 @@ private class FakeTaskDao : TaskDao {
         )
     }
 
-    override suspend fun softDelete(
+    override suspend fun setDeleted(
         id: String,
-        deletedAt: Long,
+        deletedAt: Long?,
         updatedAt: Long,
     ): Int = replace(id) { task ->
         task.copy(deletedAt = deletedAt, updatedAt = updatedAt)

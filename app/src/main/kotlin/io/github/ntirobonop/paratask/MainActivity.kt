@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import io.github.ntirobonop.paratask.core.designsystem.theme.ParaTaskTheme
-import io.github.ntirobonop.paratask.feature.inbox.InboxRoute
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -13,7 +12,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ParaTaskTheme {
-                InboxRoute(
+                ParaTaskApp(
                     taskRepository = (application as ParaTaskApplication).taskRepository,
                 )
             }

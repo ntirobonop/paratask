@@ -78,11 +78,14 @@ class DefaultTaskRepository(
         )
     }
 
-    override suspend fun deleteTask(id: TaskId) {
+    override suspend fun setDeleted(
+        id: TaskId,
+        deleted: Boolean,
+    ) {
         val now = clock.instant().toEpochMilli()
-        taskDao.softDelete(
+        taskDao.setDeleted(
             id = id.value,
-            deletedAt = now,
+            deletedAt = now.takeIf { deleted },
             updatedAt = now,
         )
     }

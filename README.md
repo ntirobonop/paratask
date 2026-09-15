@@ -4,7 +4,7 @@ ParaTask is a local-first Android task manager focused on fast capture and flexi
 
 ## Status
 
-Early development. The current foundation provides a modular Jetpack Compose application and the Inbox empty state. Task persistence and creation are planned for `v0.1`.
+Version `v0.1.0` provides a persistent offline Inbox, Quick Add, completion, and Undo. Development is currently focused on `v0.2` Task Details with autosaved title and description editing, reversible completion, and soft deletion with Undo.
 
 ## Planned v1.0 scope
 
@@ -46,7 +46,7 @@ Run all checks used by CI:
 
 ## Architecture
 
-The project uses unidirectional data flow and feature-oriented modules. See [the technical blueprint](docs/architecture/technical-blueprint.md) and [the v0.1 delivery plan](docs/development/v0.1-plan.md).
+The project uses unidirectional data flow and feature-oriented modules. See [the technical blueprint](docs/architecture/technical-blueprint.md), [the v0.1 delivery plan](docs/development/v0.1-plan.md), and [the v0.2 delivery plan](docs/development/v0.2-plan.md).
 
 ## License
 

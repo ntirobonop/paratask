@@ -56,9 +56,9 @@ interface TaskDao {
         WHERE id = :id
         """,
     )
-    suspend fun softDelete(
+    suspend fun setDeleted(
         id: String,
-        deletedAt: Long,
+        deletedAt: Long?,
         updatedAt: Long,
     ): Int
 }
