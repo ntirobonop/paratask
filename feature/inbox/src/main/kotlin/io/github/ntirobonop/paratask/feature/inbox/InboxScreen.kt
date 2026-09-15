@@ -251,11 +251,6 @@ private fun QuickAddSheet(
         }
     }
 
-    LaunchedEffect(Unit) {
-        titleFocusRequester.requestFocus()
-        keyboardController?.show()
-    }
-
     ModalBottomSheet(onDismissRequest = onDismissRequest) {
         Column(
             modifier = Modifier
@@ -297,6 +292,11 @@ private fun QuickAddSheet(
             ) {
                 Text("Создать")
             }
+        }
+
+        LaunchedEffect(Unit) {
+            titleFocusRequester.requestFocus()
+            keyboardController?.show()
         }
     }
 }
