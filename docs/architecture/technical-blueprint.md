@@ -13,7 +13,7 @@ The codebase must support incremental delivery from a small offline Inbox to a c
 | Gradle | 9.6.0 |
 | Compile / target SDK | 36 |
 | Minimum SDK | 23 |
-| UI | Jetpack Compose BOM 2026.08.00, Material 3 stable |
+| UI | Jetpack Compose BOM 2026.06.01, Material 3 1.4.0 |
 | Persistence | Room 2.8.5, introduced in the v0.1 data slice |
 | Concurrency | Kotlin Coroutines and Flow |
 | Java toolchain | JDK 17 |
