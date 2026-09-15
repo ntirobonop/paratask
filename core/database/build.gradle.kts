@@ -27,7 +27,7 @@ dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.room.runtime)
+    api(libs.androidx.room.runtime)
     implementation(libs.kotlinx.coroutines.core)
     ksp(libs.androidx.room.compiler)
 
