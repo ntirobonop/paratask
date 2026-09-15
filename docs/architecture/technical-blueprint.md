@@ -22,7 +22,7 @@ Stable dependencies are preferred. Alpha APIs require a documented product need 
 
 ## Modules
 
-The foundation starts with only modules that contain real code:
+The foundation started with only modules that contained real code:
 
 ```text
 app
@@ -31,7 +31,7 @@ app
     └── core:model
 ```
 
-The v0.1 persistence slice adds:
+The v0.1 persistence slice and v0.2 Task Details slice add:
 
 ```text
 core:database → core:model
@@ -95,7 +95,7 @@ The first database migration creates `tasks`:
 
 Room schema JSON is exported and committed from schema version 1 onward. Every schema change requires a migration and a migration test; destructive fallback is not allowed in production.
 
-## Repository API for v0.1
+## Repository API for v0.2
 
 ```kotlin
 interface TaskRepository {
@@ -104,11 +104,17 @@ interface TaskRepository {
     suspend fun createTask(title: String, description: String = ""): TaskId
     suspend fun updateTask(task: Task)
     suspend fun setCompleted(id: TaskId, completed: Boolean)
-    suspend fun deleteTask(id: TaskId)
+    suspend fun setDeleted(id: TaskId, deleted: Boolean)
 }
 ```
 
-This focused API is expanded into query objects when sorting, grouping, and filters arrive. A speculative query engine is intentionally not part of v0.1.
+This focused API is expanded into query objects when sorting, grouping, and filters arrive. A speculative query engine is intentionally not part of v0.2.
+
+## Navigation through v0.2
+
+The application currently has two destinations: Inbox and `TaskDetails(TaskId)`. The app layer owns this small destination state and the snackbar that must survive the transition from a deleted task back to Inbox. Feature modules remain independent and communicate through callbacks.
+
+A larger navigation framework is intentionally deferred until Today, Upcoming, or another top-level destination requires a real back stack. This avoids introducing framework complexity before it has multiple consumers while keeping the current navigation boundary explicit.
 
 ## Testing strategy
 
