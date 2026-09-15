@@ -60,8 +60,8 @@ class TaskDaoTest {
 
         val completed = dao.getTask("task")
         assertEquals(true, completed?.isCompleted)
-        assertEquals(200, completed?.completedAt)
-        assertEquals(200, completed?.updatedAt)
+        assertEquals(200L, completed?.completedAt)
+        assertEquals(200L, completed?.updatedAt)
         assertEquals(emptyList<TaskEntity>(), dao.observeInbox().first())
 
         dao.setCompleted(
@@ -74,7 +74,7 @@ class TaskDaoTest {
         val restored = dao.getTask("task")
         assertEquals(false, restored?.isCompleted)
         assertNull(restored?.completedAt)
-        assertEquals(300, restored?.updatedAt)
+        assertEquals(300L, restored?.updatedAt)
         assertEquals(listOf("task"), dao.observeInbox().first().map(TaskEntity::id))
     }
 }
