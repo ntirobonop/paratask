@@ -32,7 +32,7 @@ Accounts, cloud sync, collaboration, and non-Android clients are intentionally o
 Requirements:
 
 - JDK 17
-- Android SDK 37
+- Android SDK 36
 
 ```bash
 ./gradlew assembleDebug

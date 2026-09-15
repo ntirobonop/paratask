@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "io.github.ntirobonop.paratask.feature.inbox"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 23

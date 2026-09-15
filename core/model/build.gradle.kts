@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = "io.github.ntirobonop.paratask.core.model"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 23

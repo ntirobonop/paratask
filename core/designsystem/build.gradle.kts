@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "io.github.ntirobonop.paratask.core.designsystem"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 23

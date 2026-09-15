@@ -11,7 +11,7 @@ The codebase must support incremental delivery from a small offline Inbox to a c
 | Language | Kotlin 2.4.20 (AGP built-in Kotlin) |
 | Android Gradle Plugin | 9.4.0 |
 | Gradle | 9.6.0 |
-| Compile / target SDK | 37 |
+| Compile / target SDK | 36 |
 | Minimum SDK | 23 |
 | UI | Jetpack Compose BOM 2026.08.00, Material 3 stable |
 | Persistence | Room 2.8.5, introduced in the v0.1 data slice |
