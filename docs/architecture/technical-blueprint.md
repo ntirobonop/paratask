@@ -1,0 +1,125 @@
+# ParaTask technical blueprint
+
+## Goals
+
+The codebase must support incremental delivery from a small offline Inbox to a complete local task manager without making the UI depend on database details. Each increment is specified before production code changes.
+
+## Platform baseline
+
+| Item | Decision |
+| --- | --- |
+| Language | Kotlin 2.4.20 (AGP built-in Kotlin) |
+| Android Gradle Plugin | 9.4.0 |
+| Gradle | 9.6.0 |
+| Compile / target SDK | 36 |
+| Minimum SDK | 23 |
+| UI | Jetpack Compose BOM 2026.06.01, Material 3 1.4.0 |
+| Persistence | Room 2.8.5, introduced in the v0.1 data slice |
+| Concurrency | Kotlin Coroutines and Flow |
+| Java toolchain | JDK 17 |
+
+Stable dependencies are preferred. Alpha APIs require a documented product need and an explicit architecture decision.
+
+## Modules
+
+The foundation starts with only modules that contain real code:
+
+```text
+app
+├── core:designsystem
+└── feature:inbox
+    └── core:model
+```
+
+The v0.1 persistence slice adds:
+
+```text
+core:database → core:model
+core:data     → core:database + core:model
+feature:task  → core:model + core:data + core:designsystem
+feature:inbox → core:model + core:data + core:designsystem
+```
+
+Later features remain isolated under `feature:*`. Features do not depend directly on other feature modules; navigation and shared contracts are promoted to `core` only when a concrete second consumer appears.
+
+## Package convention
+
+The root namespace is `io.github.ntirobonop.paratask`.
+
+```text
+io.github.ntirobonop.paratask
+├── core.model
+├── core.database
+├── core.data
+├── core.designsystem
+└── feature.<feature-name>
+```
+
+## Data flow
+
+```text
+Room DAO → repository implementation → ViewModel → immutable UI state → Compose UI
+```
+
+- UI never accesses a DAO.
+- Room entities and domain models are separate types connected by explicit mappers.
+- ViewModels expose immutable `StateFlow` values and accept user intents through methods.
+- Time and ID creation are injectable at repository boundaries to keep tests deterministic.
+
+## Domain model
+
+`TaskId` is a value class instead of a plain `String`. Equivalent ID types are introduced with their entities (`ProjectId`, `SectionId`, and others).
+
+The initial `Task` contains future-facing nullable relationship and scheduling fields. UI code uses only capabilities delivered in the current increment.
+
+## Room schema v1
+
+The first database migration creates `tasks`:
+
+| Column | SQLite type | Nullable | Notes |
+| --- | --- | --- | --- |
+| `id` | TEXT | no | primary key, UUID |
+| `title` | TEXT | no | non-blank domain invariant |
+| `description` | TEXT | no | defaults to empty string |
+| `due_date` | TEXT | yes | ISO local date |
+| `due_time` | TEXT | yes | ISO local time |
+| `project_id` | TEXT | yes | relationship activated with Projects |
+| `section_id` | TEXT | yes | relationship activated with Sections |
+| `parent_task_id` | TEXT | yes | relationship activated with Subtasks |
+| `is_completed` | INTEGER | no | boolean |
+| `created_at` | INTEGER | no | epoch milliseconds |
+| `updated_at` | INTEGER | no | epoch milliseconds |
+| `completed_at` | INTEGER | yes | epoch milliseconds |
+| `deleted_at` | INTEGER | yes | soft deletion timestamp |
+| `sort_order` | INTEGER | no | manual ordering |
+
+Room schema JSON is exported and committed from schema version 1 onward. Every schema change requires a migration and a migration test; destructive fallback is not allowed in production.
+
+## Repository API for v0.1
+
+```kotlin
+interface TaskRepository {
+    fun observeInbox(): Flow<List<Task>>
+    fun observeTask(id: TaskId): Flow<Task?>
+    suspend fun createTask(title: String, description: String = ""): TaskId
+    suspend fun updateTask(task: Task)
+    suspend fun setCompleted(id: TaskId, completed: Boolean)
+    suspend fun deleteTask(id: TaskId)
+}
+```
+
+This focused API is expanded into query objects when sorting, grouping, and filters arrive. A speculative query engine is intentionally not part of v0.1.
+
+## Testing strategy
+
+- `core:model`: invariants and pure domain behavior.
+- `core:database`: DAO tests and committed Room schema.
+- `core:data`: repository behavior with deterministic time and IDs.
+- `feature:*`: ViewModel tests and focused Compose semantics tests.
+- `app`: navigation and critical end-to-end workflows.
+
+CI runs lint, JVM unit tests, and a debug build for every push and pull request. Instrumented tests are added when Room and user workflows require an Android runtime.
+
+## Architecture decisions
+
+Material architectural changes must be recorded in `docs/architecture/decisions/` with context, decision, consequences, and alternatives. The blueprint is updated in the same pull request as the code.
