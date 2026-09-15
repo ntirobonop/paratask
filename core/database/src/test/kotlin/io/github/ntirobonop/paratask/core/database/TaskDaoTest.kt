@@ -77,6 +77,33 @@ class TaskDaoTest {
         assertEquals(300L, restored?.updatedAt)
         assertEquals(listOf("task"), dao.observeInbox().first().map(TaskEntity::id))
     }
+
+    @Test
+    fun `deletion and restore update task atomically`() = runTest {
+        dao.insertTask(task(id = "task"))
+
+        dao.setDeleted(
+            id = "task",
+            deletedAt = 200,
+            updatedAt = 200,
+        )
+
+        val deleted = dao.getTask("task")
+        assertEquals(200L, deleted?.deletedAt)
+        assertEquals(200L, deleted?.updatedAt)
+        assertEquals(emptyList<TaskEntity>(), dao.observeInbox().first())
+
+        dao.setDeleted(
+            id = "task",
+            deletedAt = null,
+            updatedAt = 300,
+        )
+
+        val restored = dao.getTask("task")
+        assertNull(restored?.deletedAt)
+        assertEquals(300L, restored?.updatedAt)
+        assertEquals(listOf("task"), dao.observeInbox().first().map(TaskEntity::id))
+    }
 }
 
 private fun task(
