@@ -42,6 +42,8 @@ dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     implementation(project(":core:designsystem"))
+    implementation(project(":core:data"))
+    implementation(project(":core:database"))
     implementation(project(":feature:inbox"))
 
     implementation(libs.androidx.activity.compose)
