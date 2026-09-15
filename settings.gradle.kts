@@ -19,4 +19,6 @@ rootProject.name = "ParaTask"
 include(":app")
 include(":core:model")
 include(":core:designsystem")
+include(":core:database")
+include(":core:data")
 include(":feature:inbox")
