@@ -53,15 +53,6 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
-      - name: Print generated Room schema v2
-        if: always()
-        run: |
-          if test -f core/database/schemas/io.github.ntirobonop.paratask.core.database.AppDatabase/2.json; then
-            echo "ROOM_SCHEMA_V2_BEGIN"
-            sed -n '1,260p' core/database/schemas/io.github.ntirobonop.paratask.core.database.AppDatabase/2.json
-            echo "ROOM_SCHEMA_V2_END"
-          fi
-
       - name: Verify Room schemas are committed
         run: test -z "$(git status --porcelain -- core/database/schemas)"
 
