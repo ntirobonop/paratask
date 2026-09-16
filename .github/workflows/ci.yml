@@ -46,27 +46,12 @@ jobs:
       - name: Run checks and build debug APK
         run: ./gradlew lint testDebugUnitTest assembleDebug
 
-      - name: Print failing test reports
-        if: failure()
-        run: |
-          find . -path '*/build/test-results/*/TEST-*.xml' -type f -print \
-            -exec sed -n '1,240p' {} \;
-
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: paratask-v0.6-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-
-      - name: Print generated Room schema v3
-        if: always()
-        run: |
-          if test -f core/database/schemas/io.github.ntirobonop.paratask.core.database.AppDatabase/3.json; then
-            echo "ROOM_SCHEMA_V3_BEGIN"
-            sed -n '1,360p' core/database/schemas/io.github.ntirobonop.paratask.core.database.AppDatabase/3.json
-            echo "ROOM_SCHEMA_V3_END"
-          fi
 
       - name: Verify Room schemas are committed
         run: test -z "$(git status --porcelain -- core/database/schemas)"
