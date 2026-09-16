@@ -20,6 +20,8 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -50,6 +52,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
+import io.github.ntirobonop.paratask.core.model.Project
+import io.github.ntirobonop.paratask.core.model.ProjectId
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -60,6 +64,7 @@ data class TaskDraft(
     val title: String = "",
     val description: String = "",
     val dueDate: LocalDate? = null,
+    val projectId: ProjectId? = null,
 )
 
 enum class TaskListDestination {
@@ -179,11 +184,15 @@ fun TaskComposerSheet(
     initialDueDate: LocalDate?,
     onDismissRequest: () -> Unit,
     onCreateTask: (TaskDraft) -> Unit,
+    initialProjectId: ProjectId? = null,
+    projects: List<Project> = emptyList(),
 ) {
     var title by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
     var dueDateText by rememberSaveable { mutableStateOf(initialDueDate?.toString()) }
+    var projectIdText by rememberSaveable { mutableStateOf(initialProjectId?.value) }
     val dueDate = dueDateText?.let(LocalDate::parse)
+    val projectId = projectIdText?.let(::ProjectId)
     val titleFocusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val createTask = {
@@ -193,6 +202,7 @@ fun TaskComposerSheet(
                     title = title,
                     description = description,
                     dueDate = dueDate,
+                    projectId = projectId,
                 ),
             )
         }
@@ -205,8 +215,8 @@ fun TaskComposerSheet(
                 .navigationBarsPadding()
                 .imePadding()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
                 text = "Новая задача",
@@ -231,7 +241,7 @@ fun TaskComposerSheet(
                 onValueChange = { description = it },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Описание") },
-                minLines = 3,
+                minLines = 2,
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
                     imeAction = ImeAction.Done,
@@ -241,6 +251,11 @@ fun TaskComposerSheet(
             TaskDateField(
                 dueDate = dueDate,
                 onDateChange = { dueDateText = it?.toString() },
+            )
+            TaskProjectField(
+                projectId = projectId,
+                projects = projects,
+                onProjectChange = { projectIdText = it?.value },
             )
             Button(
                 onClick = createTask,
@@ -254,6 +269,58 @@ fun TaskComposerSheet(
         LaunchedEffect(Unit) {
             titleFocusRequester.requestFocus()
             keyboardController?.show()
+        }
+    }
+}
+
+@Composable
+fun TaskProjectField(
+    projectId: ProjectId?,
+    projects: List<Project>,
+    onProjectChange: (ProjectId?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val selectedName = projects.firstOrNull { project -> project.id == projectId }?.name
+        ?: "Входящие"
+
+    Box(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = true }
+                .semantics { contentDescription = "Выбрать проект" }
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = "Проект", style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = selectedName,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text("Входящие") },
+                onClick = {
+                    onProjectChange(null)
+                    expanded = false
+                },
+            )
+            projects.forEach { project ->
+                DropdownMenuItem(
+                    text = { Text(project.name) },
+                    onClick = {
+                        onProjectChange(project.id)
+                        expanded = false
+                    },
+                )
+            }
         }
     }
 }
@@ -343,13 +410,10 @@ fun ParaTaskBottomNavigation(
 ) {
     NavigationBar {
         TaskListDestination.entries.forEach { destination ->
-            val enabled = destination == TaskListDestination.INBOX ||
-                destination == TaskListDestination.TODAY ||
-                destination == TaskListDestination.UPCOMING
             NavigationBarItem(
                 selected = selectedDestination == destination,
                 onClick = { onDestinationSelected(destination) },
-                enabled = enabled,
+                enabled = true,
                 icon = { Text(if (selectedDestination == destination) "●" else "○") },
                 label = { Text(destination.label) },
             )

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
+import io.github.ntirobonop.paratask.core.model.ProjectId
 import java.time.LocalDate
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -26,6 +27,7 @@ data class TaskDetailsUiState(
     val title: String = "",
     val description: String = "",
     val dueDate: LocalDate? = null,
+    val projectId: ProjectId? = null,
     val isCompleted: Boolean = false,
     val hasPendingChanges: Boolean = false,
     val taskMissing: Boolean = false,
@@ -95,6 +97,15 @@ class TaskDetailsViewModel(
         scheduleAutosave()
     }
 
+    fun updateProject(projectId: ProjectId?) {
+        editRevision += 1
+        _uiState.value = _uiState.value.copy(
+            projectId = projectId,
+            hasPendingChanges = true,
+        )
+        scheduleAutosave()
+    }
+
     fun setCompleted(completed: Boolean) {
         saveJob?.cancel()
         viewModelScope.launch {
@@ -148,6 +159,7 @@ class TaskDetailsViewModel(
             title = if (keepDraft) state.title else task.title,
             description = if (keepDraft) state.description else task.description,
             dueDate = if (keepDraft) state.dueDate else task.dueDate,
+            projectId = if (keepDraft) state.projectId else task.projectId,
             isCompleted = task.isCompleted,
             taskMissing = false,
         )
@@ -175,6 +187,7 @@ class TaskDetailsViewModel(
                     title = state.title,
                     description = state.description,
                     dueDate = state.dueDate,
+                    projectId = state.projectId,
                 ),
             )
         }.onSuccess {
@@ -195,6 +208,7 @@ class TaskDetailsViewModel(
             title = task.title,
             description = task.description,
             dueDate = task.dueDate,
+            projectId = task.projectId,
             hasPendingChanges = false,
         )
     }

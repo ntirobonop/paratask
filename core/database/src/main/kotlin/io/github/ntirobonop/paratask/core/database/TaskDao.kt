@@ -45,6 +45,17 @@ interface TaskDao {
         endDate: String,
     ): Flow<List<TaskEntity>>
 
+    @Query(
+        """
+        SELECT * FROM tasks
+        WHERE project_id = :projectId
+          AND deleted_at IS NULL
+          AND is_completed = 0
+        ORDER BY sort_order ASC, created_at ASC
+        """,
+    )
+    fun observeProjectTasks(projectId: String): Flow<List<TaskEntity>>
+
     @Query("SELECT * FROM tasks WHERE id = :id LIMIT 1")
     fun observeTask(id: String): Flow<TaskEntity?>
 

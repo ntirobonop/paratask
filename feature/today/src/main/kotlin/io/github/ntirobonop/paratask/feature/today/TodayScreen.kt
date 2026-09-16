@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.ntirobonop.paratask.core.data.TaskRepository
+import io.github.ntirobonop.paratask.core.model.Project
 import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.core.ui.ParaTaskBottomNavigation
 import io.github.ntirobonop.paratask.core.ui.TaskComposerSheet
@@ -37,6 +38,8 @@ fun TodayRoute(
     onOpenTask: (TaskId) -> Unit,
     onNavigateToInbox: () -> Unit,
     onNavigateToUpcoming: () -> Unit,
+    onNavigateToBrowse: () -> Unit = {},
+    activeProjects: List<Project> = emptyList(),
     today: LocalDate = LocalDate.now(),
     modifier: Modifier = Modifier,
     viewModel: TodayViewModel = viewModel(factory = TodayViewModel.factory(taskRepository, today)),
@@ -74,6 +77,7 @@ fun TodayRoute(
                 title = draft.title,
                 description = draft.description,
                 dueDate = draft.dueDate,
+                projectId = draft.projectId,
             )
             showQuickAdd = false
         },
@@ -81,6 +85,8 @@ fun TodayRoute(
         onOpenTask = onOpenTask,
         onNavigateToInbox = onNavigateToInbox,
         onNavigateToUpcoming = onNavigateToUpcoming,
+        onNavigateToBrowse = onNavigateToBrowse,
+        activeProjects = activeProjects,
         modifier = modifier,
     )
 }
@@ -98,6 +104,8 @@ fun TodayScreen(
     onOpenTask: (TaskId) -> Unit,
     onNavigateToInbox: () -> Unit,
     onNavigateToUpcoming: () -> Unit,
+    onNavigateToBrowse: () -> Unit = {},
+    activeProjects: List<Project> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -119,6 +127,7 @@ fun TodayScreen(
                     when (destination) {
                         TaskListDestination.INBOX -> onNavigateToInbox()
                         TaskListDestination.UPCOMING -> onNavigateToUpcoming()
+                        TaskListDestination.BROWSE -> onNavigateToBrowse()
                         else -> Unit
                     }
                 },
@@ -141,6 +150,7 @@ fun TodayScreen(
             initialDueDate = uiState.date,
             onDismissRequest = onDismissQuickAdd,
             onCreateTask = onCreateTask,
+            projects = activeProjects,
         )
     }
 }
