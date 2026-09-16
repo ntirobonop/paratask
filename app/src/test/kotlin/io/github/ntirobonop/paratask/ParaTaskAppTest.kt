@@ -73,6 +73,21 @@ class ParaTaskAppTest {
             assertNull(repository.task(TASK_ID)?.deletedAt)
         }
     }
+
+    @Test
+    fun `Today navigation shows tasks due today`() {
+        val today = LocalDate.parse("2026-09-16")
+        val repository = FakeAppTaskRepository(task().copy(dueDate = today))
+        composeRule.setContent {
+            MaterialTheme {
+                ParaTaskApp(taskRepository = repository, today = today)
+            }
+        }
+
+        composeRule.onNodeWithText("Сегодня").performClick()
+
+        composeRule.onNodeWithText("Купить продукты").assertIsDisplayed()
+    }
 }
 
 private class FakeAppTaskRepository(initialTask: Task) : TaskRepository {

@@ -56,6 +56,38 @@ class TaskDetailsViewModelTest {
     }
 
     @Test
+    fun `due date is autosaved with other task details`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val repository = FakeTaskRepository(task())
+            val viewModel = TaskDetailsViewModel(repository, TASK_ID, autosaveDelayMillis = 500)
+            advanceUntilIdle()
+
+            val dueDate = LocalDate.parse("2026-09-16")
+            viewModel.updateDueDate(dueDate)
+            advanceTimeBy(500)
+            runCurrent()
+
+            assertEquals(dueDate, repository.updatedTasks.single().dueDate)
+            assertEquals(dueDate, repository.task(TASK_ID)?.dueDate)
+            assertFalse(viewModel.uiState.value.hasPendingChanges)
+        }
+
+    @Test
+    fun `due date can be cleared by autosave`() = runTest(mainDispatcherRule.testDispatcher) {
+        val dueDate = LocalDate.parse("2026-09-16")
+        val repository = FakeTaskRepository(task().copy(dueDate = dueDate))
+        val viewModel = TaskDetailsViewModel(repository, TASK_ID, autosaveDelayMillis = 500)
+        advanceUntilIdle()
+
+        viewModel.updateDueDate(null)
+        advanceTimeBy(500)
+        runCurrent()
+
+        assertEquals(null, repository.updatedTasks.single().dueDate)
+        assertEquals(null, repository.task(TASK_ID)?.dueDate)
+    }
+
+    @Test
     fun `blank title does not replace persisted task`() = runTest(mainDispatcherRule.testDispatcher) {
         val repository = FakeTaskRepository(task())
         val viewModel = TaskDetailsViewModel(repository, TASK_ID, autosaveDelayMillis = 500)
