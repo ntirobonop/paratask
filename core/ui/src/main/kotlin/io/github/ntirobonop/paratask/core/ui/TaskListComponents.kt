@@ -79,6 +79,7 @@ fun TaskListContent(
     onOpenTask: (TaskId) -> Unit,
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
+    showDueDate: Boolean = true,
 ) {
     when {
         isLoading -> Box(
@@ -114,6 +115,7 @@ fun TaskListContent(
                     task = task,
                     onCompleteTask = onCompleteTask,
                     onOpenTask = onOpenTask,
+                    showDueDate = showDueDate,
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
@@ -126,6 +128,7 @@ private fun TaskRow(
     task: Task,
     onCompleteTask: (TaskId) -> Unit,
     onOpenTask: (TaskId) -> Unit,
+    showDueDate: Boolean,
 ) {
     Row(
         modifier = Modifier
@@ -157,12 +160,14 @@ private fun TaskRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            task.dueDate?.let { dueDate ->
-                Text(
-                    text = formatTaskDate(dueDate),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
+            if (showDueDate) {
+                task.dueDate?.let { dueDate ->
+                    Text(
+                        text = formatTaskDate(dueDate),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         }
     }

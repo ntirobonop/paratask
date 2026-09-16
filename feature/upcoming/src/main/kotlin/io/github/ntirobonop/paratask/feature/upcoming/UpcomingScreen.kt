@@ -194,6 +194,7 @@ fun UpcomingScreen(
                     bottom = contentPadding.calculateBottomPadding(),
                 ),
                 modifier = Modifier.weight(1f),
+                showDueDate = false,
             )
         }
     }
