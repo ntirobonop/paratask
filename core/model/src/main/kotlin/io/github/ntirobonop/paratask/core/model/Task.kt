@@ -17,7 +17,15 @@ value class TaskId(val value: String) {
 }
 
 @JvmInline
-value class ProjectId(val value: String)
+value class ProjectId(val value: String) {
+    init {
+        require(value.isNotBlank()) { "Project ID must not be blank" }
+    }
+
+    companion object {
+        fun random(): ProjectId = ProjectId(UUID.randomUUID().toString())
+    }
+}
 
 @JvmInline
 value class SectionId(val value: String)

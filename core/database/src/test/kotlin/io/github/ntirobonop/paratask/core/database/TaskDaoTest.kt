@@ -19,6 +19,7 @@ import org.robolectric.annotation.Config
 class TaskDaoTest {
     private lateinit var database: AppDatabase
     private lateinit var dao: TaskDao
+    private lateinit var projectDao: ProjectDao
 
     @Before
     fun setUp() {
@@ -27,6 +28,7 @@ class TaskDaoTest {
             .allowMainThreadQueries()
             .build()
         dao = database.taskDao()
+        projectDao = database.projectDao()
     }
 
     @After
@@ -39,6 +41,7 @@ class TaskDaoTest {
         dao.insertTask(task(id = "active"))
         dao.insertTask(task(id = "completed", isCompleted = true, completedAt = 20))
         dao.insertTask(task(id = "deleted", deletedAt = 20))
+        projectDao.insertProject(project(id = "project-1"))
         dao.insertTask(task(id = "project", projectId = "project-1"))
         dao.insertTask(task(id = "subtask", parentTaskId = "parent"))
 
@@ -148,6 +151,18 @@ class TaskDaoTest {
         assertEquals(listOf("monday", "sunday"), week.map(TaskEntity::id))
     }
 }
+
+private fun project(id: String): ProjectEntity = ProjectEntity(
+    id = id,
+    name = id,
+    color = 0xFF6750A4,
+    icon = "LIST",
+    isArchived = false,
+    createdAt = 10,
+    updatedAt = 10,
+    deletedAt = null,
+    sortOrder = 0,
+)
 
 private fun task(
     id: String,

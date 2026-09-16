@@ -14,6 +14,7 @@ class MainActivity : ComponentActivity() {
             ParaTaskTheme {
                 ParaTaskApp(
                     taskRepository = (application as ParaTaskApplication).taskRepository,
+                    projectRepository = (application as ParaTaskApplication).projectRepository,
                 )
             }
         }

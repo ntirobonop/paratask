@@ -2,11 +2,20 @@ package io.github.ntirobonop.paratask.core.database
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "tasks",
+    foreignKeys = [
+        ForeignKey(
+            entity = ProjectEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["project_id"],
+            onDelete = ForeignKey.SET_NULL,
+        ),
+    ],
     indices = [
         Index(value = ["project_id", "is_completed", "deleted_at"]),
         Index(value = ["parent_task_id"]),

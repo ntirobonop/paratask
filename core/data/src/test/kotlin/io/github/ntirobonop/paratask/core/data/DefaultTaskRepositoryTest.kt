@@ -137,6 +137,13 @@ private class FakeTaskDao : TaskDao {
             )
     }
 
+    override fun observeProjectTasks(projectId: String): Flow<List<TaskEntity>> =
+        tasks.map { values ->
+            values.filter { task ->
+                task.projectId == projectId && task.deletedAt == null && !task.isCompleted
+            }
+        }
+
     override fun observeTask(id: String): Flow<TaskEntity?> =
         tasks.map { values -> values.firstOrNull { it.id == id } }
 

@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.ntirobonop.paratask.core.data.TaskRepository
+import io.github.ntirobonop.paratask.core.model.Project
 import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.core.ui.ParaTaskBottomNavigation
 import io.github.ntirobonop.paratask.core.ui.TaskComposerSheet
@@ -60,6 +61,8 @@ fun UpcomingRoute(
     onOpenTask: (TaskId) -> Unit,
     onNavigateToInbox: () -> Unit,
     onNavigateToToday: () -> Unit,
+    onNavigateToBrowse: () -> Unit = {},
+    activeProjects: List<Project> = emptyList(),
     today: LocalDate = LocalDate.now(),
     modifier: Modifier = Modifier,
     viewModel: UpcomingViewModel = viewModel(
@@ -99,6 +102,7 @@ fun UpcomingRoute(
                 title = draft.title,
                 description = draft.description,
                 dueDate = draft.dueDate,
+                projectId = draft.projectId,
             )
             showQuickAdd = false
         },
@@ -110,6 +114,8 @@ fun UpcomingRoute(
         onOpenTask = onOpenTask,
         onNavigateToInbox = onNavigateToInbox,
         onNavigateToToday = onNavigateToToday,
+        onNavigateToBrowse = onNavigateToBrowse,
+        activeProjects = activeProjects,
         modifier = modifier,
     )
 }
@@ -131,6 +137,8 @@ fun UpcomingScreen(
     onOpenTask: (TaskId) -> Unit,
     onNavigateToInbox: () -> Unit,
     onNavigateToToday: () -> Unit,
+    onNavigateToBrowse: () -> Unit = {},
+    activeProjects: List<Project> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -166,6 +174,7 @@ fun UpcomingScreen(
                     when (destination) {
                         TaskListDestination.INBOX -> onNavigateToInbox()
                         TaskListDestination.TODAY -> onNavigateToToday()
+                        TaskListDestination.BROWSE -> onNavigateToBrowse()
                         else -> Unit
                     }
                 },
@@ -204,6 +213,7 @@ fun UpcomingScreen(
             initialDueDate = uiState.selectedDate,
             onDismissRequest = onDismissQuickAdd,
             onCreateTask = onCreateTask,
+            projects = activeProjects,
         )
     }
 }

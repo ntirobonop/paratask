@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.ntirobonop.paratask.core.data.TaskRepository
+import io.github.ntirobonop.paratask.core.model.Project
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.core.ui.ParaTaskBottomNavigation
@@ -39,6 +40,8 @@ fun InboxRoute(
     onOpenTask: (TaskId) -> Unit,
     onNavigateToToday: () -> Unit,
     onNavigateToUpcoming: () -> Unit,
+    onNavigateToBrowse: () -> Unit = {},
+    activeProjects: List<Project> = emptyList(),
     modifier: Modifier = Modifier,
     viewModel: InboxViewModel = viewModel(factory = InboxViewModel.factory(taskRepository)),
 ) {
@@ -75,6 +78,7 @@ fun InboxRoute(
                 title = draft.title,
                 description = draft.description,
                 dueDate = draft.dueDate,
+                projectId = draft.projectId,
             )
             showQuickAdd = false
         },
@@ -82,6 +86,8 @@ fun InboxRoute(
         onOpenTask = onOpenTask,
         onNavigateToToday = onNavigateToToday,
         onNavigateToUpcoming = onNavigateToUpcoming,
+        onNavigateToBrowse = onNavigateToBrowse,
+        activeProjects = activeProjects,
         modifier = modifier,
     )
 }
@@ -99,6 +105,8 @@ fun InboxScreen(
     onOpenTask: (TaskId) -> Unit,
     onNavigateToToday: () -> Unit,
     onNavigateToUpcoming: () -> Unit,
+    onNavigateToBrowse: () -> Unit = {},
+    activeProjects: List<Project> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -122,6 +130,7 @@ fun InboxScreen(
                     when (destination) {
                         TaskListDestination.TODAY -> onNavigateToToday()
                         TaskListDestination.UPCOMING -> onNavigateToUpcoming()
+                        TaskListDestination.BROWSE -> onNavigateToBrowse()
                         else -> Unit
                     }
                 },
@@ -144,6 +153,7 @@ fun InboxScreen(
             initialDueDate = null,
             onDismissRequest = onDismissQuickAdd,
             onCreateTask = onCreateTask,
+            projects = activeProjects,
         )
     }
 }

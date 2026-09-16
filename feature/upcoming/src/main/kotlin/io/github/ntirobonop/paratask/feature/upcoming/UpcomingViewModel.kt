@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
+import io.github.ntirobonop.paratask.core.model.ProjectId
 import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -103,6 +104,7 @@ class UpcomingViewModel(
         title: String,
         description: String,
         dueDate: LocalDate?,
+        projectId: ProjectId? = null,
     ) {
         if (title.isBlank()) return
 
@@ -112,6 +114,7 @@ class UpcomingViewModel(
                     title = title,
                     description = description,
                     dueDate = dueDate,
+                    projectId = projectId,
                 )
             }.onFailure {
                 eventChannel.send(UpcomingUiEvent.ShowMessage("Не удалось создать задачу"))

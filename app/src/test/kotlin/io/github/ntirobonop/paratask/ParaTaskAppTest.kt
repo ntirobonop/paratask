@@ -10,6 +10,11 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.ntirobonop.paratask.core.data.TaskRepository
+import io.github.ntirobonop.paratask.core.data.ProjectMove
+import io.github.ntirobonop.paratask.core.data.ProjectRepository
+import io.github.ntirobonop.paratask.core.model.Project
+import io.github.ntirobonop.paratask.core.model.ProjectIcon
+import io.github.ntirobonop.paratask.core.model.ProjectId
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import java.time.Instant
@@ -35,7 +40,10 @@ class ParaTaskAppTest {
         val repository = FakeAppTaskRepository(task())
         composeRule.setContent {
             MaterialTheme {
-                ParaTaskApp(taskRepository = repository)
+                ParaTaskApp(
+                    taskRepository = repository,
+                    projectRepository = FakeAppProjectRepository(),
+                )
             }
         }
 
@@ -58,7 +66,10 @@ class ParaTaskAppTest {
         val repository = FakeAppTaskRepository(task())
         composeRule.setContent {
             MaterialTheme {
-                ParaTaskApp(taskRepository = repository)
+                ParaTaskApp(
+                    taskRepository = repository,
+                    projectRepository = FakeAppProjectRepository(),
+                )
             }
         }
 
@@ -80,7 +91,11 @@ class ParaTaskAppTest {
         val repository = FakeAppTaskRepository(task().copy(dueDate = today))
         composeRule.setContent {
             MaterialTheme {
-                ParaTaskApp(taskRepository = repository, today = today)
+                ParaTaskApp(
+                    taskRepository = repository,
+                    projectRepository = FakeAppProjectRepository(),
+                    today = today,
+                )
             }
         }
 
@@ -95,7 +110,11 @@ class ParaTaskAppTest {
         val repository = FakeAppTaskRepository(task().copy(dueDate = today))
         composeRule.setContent {
             MaterialTheme {
-                ParaTaskApp(taskRepository = repository, today = today)
+                ParaTaskApp(
+                    taskRepository = repository,
+                    projectRepository = FakeAppProjectRepository(),
+                    today = today,
+                )
             }
         }
 
@@ -113,6 +132,32 @@ class ParaTaskAppTest {
             "среда, 16 сентября, задач: 1, выбрано",
         ).assertIsDisplayed()
     }
+}
+
+private class FakeAppProjectRepository : ProjectRepository {
+    private val projects = MutableStateFlow<List<Project>>(emptyList())
+
+    override fun observeActiveProjects(): Flow<List<Project>> = projects
+
+    override fun observeArchivedProjects(): Flow<List<Project>> =
+        projects.map { values -> values.filter(Project::isArchived) }
+
+    override fun observeProject(id: ProjectId): Flow<Project?> =
+        projects.map { values -> values.firstOrNull { project -> project.id == id } }
+
+    override suspend fun createProject(
+        name: String,
+        color: Long,
+        icon: ProjectIcon,
+    ): ProjectId = error("Not used")
+
+    override suspend fun updateProject(project: Project) = Unit
+
+    override suspend fun setArchived(id: ProjectId, archived: Boolean) = Unit
+
+    override suspend fun deleteProject(id: ProjectId) = Unit
+
+    override suspend fun moveProject(id: ProjectId, move: ProjectMove) = Unit
 }
 
 private class FakeAppTaskRepository(initialTask: Task) : TaskRepository {
