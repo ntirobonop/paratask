@@ -1,6 +1,7 @@
 package io.github.ntirobonop.paratask.core.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,8 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -31,6 +34,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +45,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -85,6 +90,8 @@ fun TaskListContent(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier,
     showDueDate: Boolean = true,
+    projects: List<Project> = emptyList(),
+    showProject: Boolean = true,
 ) {
     when {
         isLoading -> Box(
@@ -121,6 +128,8 @@ fun TaskListContent(
                     onCompleteTask = onCompleteTask,
                     onOpenTask = onOpenTask,
                     showDueDate = showDueDate,
+                    project = projects.firstOrNull { project -> project.id == task.projectId },
+                    showProject = showProject,
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             }
@@ -134,6 +143,8 @@ private fun TaskRow(
     onCompleteTask: (TaskId) -> Unit,
     onOpenTask: (TaskId) -> Unit,
     showDueDate: Boolean,
+    project: Project?,
+    showProject: Boolean,
 ) {
     Row(
         modifier = Modifier
@@ -174,6 +185,45 @@ private fun TaskRow(
                     )
                 }
             }
+            if (showProject && project != null) {
+                ProjectIdentityMarker(project = project)
+            }
+        }
+    }
+}
+
+@Composable
+fun ProjectIdentityMarker(
+    project: Project,
+    modifier: Modifier = Modifier,
+    showName: Boolean = true,
+) {
+    Row(
+        modifier = modifier.semantics {
+            contentDescription = "Проект ${project.name}"
+        },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        val markerColor = Color(project.color)
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .background(markerColor, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = project.icon.glyph,
+                color = contentColorFor(markerColor),
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
+        if (showName) {
+            Text(
+                text = project.name,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -463,3 +513,12 @@ private val DATE_FORMATTER = DateTimeFormatter.ofPattern(
     "d MMMM yyyy",
     Locale.forLanguageTag("ru"),
 )
+
+private val io.github.ntirobonop.paratask.core.model.ProjectIcon.glyph: String
+    get() = when (this) {
+        io.github.ntirobonop.paratask.core.model.ProjectIcon.LIST -> "☰"
+        io.github.ntirobonop.paratask.core.model.ProjectIcon.WORK -> "▣"
+        io.github.ntirobonop.paratask.core.model.ProjectIcon.SCHOOL -> "◆"
+        io.github.ntirobonop.paratask.core.model.ProjectIcon.HOME -> "⌂"
+        io.github.ntirobonop.paratask.core.model.ProjectIcon.STAR -> "★"
+    }

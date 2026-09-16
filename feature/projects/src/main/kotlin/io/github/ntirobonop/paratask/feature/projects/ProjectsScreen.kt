@@ -1,7 +1,6 @@
 package io.github.ntirobonop.paratask.feature.projects
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,10 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -58,6 +55,7 @@ import io.github.ntirobonop.paratask.core.model.ProjectIcon
 import io.github.ntirobonop.paratask.core.model.ProjectId
 import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.core.ui.ParaTaskBottomNavigation
+import io.github.ntirobonop.paratask.core.ui.ProjectIdentityMarker
 import io.github.ntirobonop.paratask.core.ui.TaskComposerSheet
 import io.github.ntirobonop.paratask.core.ui.TaskListContent
 import io.github.ntirobonop.paratask.core.ui.TaskListDestination
@@ -262,12 +260,7 @@ private fun ProjectRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(12.dp)
-                    .background(Color(project.color), CircleShape),
-            )
-            Text(project.icon.glyph)
+            ProjectIdentityMarker(project = project, showName = false)
             Text(
                 text = project.name,
                 modifier = Modifier.weight(1f),
@@ -436,6 +429,7 @@ fun ProjectRoute(
             onCompleteTask = viewModel::completeTask,
             onOpenTask = onOpenTask,
             contentPadding = contentPadding,
+            showProject = false,
         )
     }
 

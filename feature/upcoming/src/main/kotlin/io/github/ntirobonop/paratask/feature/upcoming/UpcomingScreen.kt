@@ -63,6 +63,7 @@ fun UpcomingRoute(
     onNavigateToToday: () -> Unit,
     onNavigateToBrowse: () -> Unit = {},
     activeProjects: List<Project> = emptyList(),
+    taskProjects: List<Project> = activeProjects,
     today: LocalDate = LocalDate.now(),
     modifier: Modifier = Modifier,
     viewModel: UpcomingViewModel = viewModel(
@@ -116,6 +117,7 @@ fun UpcomingRoute(
         onNavigateToToday = onNavigateToToday,
         onNavigateToBrowse = onNavigateToBrowse,
         activeProjects = activeProjects,
+        taskProjects = taskProjects,
         modifier = modifier,
     )
 }
@@ -139,6 +141,7 @@ fun UpcomingScreen(
     onNavigateToToday: () -> Unit,
     onNavigateToBrowse: () -> Unit = {},
     activeProjects: List<Project> = emptyList(),
+    taskProjects: List<Project> = activeProjects,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -204,6 +207,7 @@ fun UpcomingScreen(
                 ),
                 modifier = Modifier.weight(1f),
                 showDueDate = false,
+                projects = taskProjects,
             )
         }
     }

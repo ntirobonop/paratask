@@ -34,6 +34,9 @@ fun ParaTaskApp(
     val coroutineScope = rememberCoroutineScope()
     val activeProjects by projectRepository.observeActiveProjects()
         .collectAsStateWithLifecycle(emptyList())
+    val archivedProjects by projectRepository.observeArchivedProjects()
+        .collectAsStateWithLifecycle(emptyList())
+    val taskProjects = activeProjects + archivedProjects
     var selectedTaskId by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedProjectId by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedDestination by rememberSaveable { mutableStateOf(TopLevelDestination.INBOX.name) }
@@ -110,6 +113,7 @@ fun ParaTaskApp(
                     selectedDestination = TopLevelDestination.BROWSE.name
                 },
                 activeProjects = activeProjects,
+                taskProjects = taskProjects,
                 today = today,
             )
 
@@ -127,6 +131,7 @@ fun ParaTaskApp(
                     selectedDestination = TopLevelDestination.BROWSE.name
                 },
                 activeProjects = activeProjects,
+                taskProjects = taskProjects,
                 today = today,
             )
 

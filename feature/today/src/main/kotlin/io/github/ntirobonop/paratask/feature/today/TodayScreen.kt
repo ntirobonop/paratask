@@ -40,6 +40,7 @@ fun TodayRoute(
     onNavigateToUpcoming: () -> Unit,
     onNavigateToBrowse: () -> Unit = {},
     activeProjects: List<Project> = emptyList(),
+    taskProjects: List<Project> = activeProjects,
     today: LocalDate = LocalDate.now(),
     modifier: Modifier = Modifier,
     viewModel: TodayViewModel = viewModel(factory = TodayViewModel.factory(taskRepository, today)),
@@ -87,6 +88,7 @@ fun TodayRoute(
         onNavigateToUpcoming = onNavigateToUpcoming,
         onNavigateToBrowse = onNavigateToBrowse,
         activeProjects = activeProjects,
+        taskProjects = taskProjects,
         modifier = modifier,
     )
 }
@@ -106,6 +108,7 @@ fun TodayScreen(
     onNavigateToUpcoming: () -> Unit,
     onNavigateToBrowse: () -> Unit = {},
     activeProjects: List<Project> = emptyList(),
+    taskProjects: List<Project> = activeProjects,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -142,6 +145,7 @@ fun TodayScreen(
             onCompleteTask = onCompleteTask,
             onOpenTask = onOpenTask,
             contentPadding = contentPadding,
+            projects = taskProjects,
         )
     }
 
