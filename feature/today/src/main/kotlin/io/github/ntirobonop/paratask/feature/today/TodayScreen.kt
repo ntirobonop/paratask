@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.Project
+import io.github.ntirobonop.paratask.core.model.Section
 import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.core.ui.ParaTaskBottomNavigation
 import io.github.ntirobonop.paratask.core.ui.TaskComposerSheet
@@ -41,6 +42,7 @@ fun TodayRoute(
     onNavigateToBrowse: () -> Unit = {},
     activeProjects: List<Project> = emptyList(),
     taskProjects: List<Project> = activeProjects,
+    sections: List<Section> = emptyList(),
     today: LocalDate = LocalDate.now(),
     modifier: Modifier = Modifier,
     viewModel: TodayViewModel = viewModel(factory = TodayViewModel.factory(taskRepository, today)),
@@ -79,6 +81,7 @@ fun TodayRoute(
                 description = draft.description,
                 dueDate = draft.dueDate,
                 projectId = draft.projectId,
+                sectionId = draft.sectionId,
             )
             showQuickAdd = false
         },
@@ -89,6 +92,7 @@ fun TodayRoute(
         onNavigateToBrowse = onNavigateToBrowse,
         activeProjects = activeProjects,
         taskProjects = taskProjects,
+        sections = sections,
         modifier = modifier,
     )
 }
@@ -109,6 +113,7 @@ fun TodayScreen(
     onNavigateToBrowse: () -> Unit = {},
     activeProjects: List<Project> = emptyList(),
     taskProjects: List<Project> = activeProjects,
+    sections: List<Section> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -155,6 +160,7 @@ fun TodayScreen(
             onDismissRequest = onDismissQuickAdd,
             onCreateTask = onCreateTask,
             projects = activeProjects,
+            sections = sections,
         )
     }
 }

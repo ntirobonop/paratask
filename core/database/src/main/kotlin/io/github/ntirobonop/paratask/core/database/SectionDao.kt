@@ -13,6 +13,15 @@ interface SectionDao {
     @Query(
         """
         SELECT * FROM sections
+        WHERE deleted_at IS NULL
+        ORDER BY project_id ASC, sort_order ASC, created_at ASC
+        """,
+    )
+    fun observeAllSections(): Flow<List<SectionEntity>>
+
+    @Query(
+        """
+        SELECT * FROM sections
         WHERE project_id = :projectId
           AND deleted_at IS NULL
         ORDER BY sort_order ASC, created_at ASC

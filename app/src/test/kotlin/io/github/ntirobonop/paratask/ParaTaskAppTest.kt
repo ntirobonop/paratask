@@ -12,9 +12,12 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.data.ProjectMove
 import io.github.ntirobonop.paratask.core.data.ProjectRepository
+import io.github.ntirobonop.paratask.core.data.SectionRepository
 import io.github.ntirobonop.paratask.core.model.Project
 import io.github.ntirobonop.paratask.core.model.ProjectIcon
 import io.github.ntirobonop.paratask.core.model.ProjectId
+import io.github.ntirobonop.paratask.core.model.Section
+import io.github.ntirobonop.paratask.core.model.SectionId
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import java.time.Instant
@@ -43,6 +46,7 @@ class ParaTaskAppTest {
                 ParaTaskApp(
                     taskRepository = repository,
                     projectRepository = FakeAppProjectRepository(),
+                    sectionRepository = FakeAppSectionRepository(),
                 )
             }
         }
@@ -69,6 +73,7 @@ class ParaTaskAppTest {
                 ParaTaskApp(
                     taskRepository = repository,
                     projectRepository = FakeAppProjectRepository(),
+                    sectionRepository = FakeAppSectionRepository(),
                 )
             }
         }
@@ -94,6 +99,7 @@ class ParaTaskAppTest {
                 ParaTaskApp(
                     taskRepository = repository,
                     projectRepository = FakeAppProjectRepository(),
+                    sectionRepository = FakeAppSectionRepository(),
                     today = today,
                 )
             }
@@ -113,6 +119,7 @@ class ParaTaskAppTest {
                 ParaTaskApp(
                     taskRepository = repository,
                     projectRepository = FakeAppProjectRepository(),
+                    sectionRepository = FakeAppSectionRepository(),
                     today = today,
                 )
             }
@@ -132,6 +139,22 @@ class ParaTaskAppTest {
             "среда, 16 сентября, задач: 1, выбрано",
         ).assertIsDisplayed()
     }
+}
+
+private class FakeAppSectionRepository : SectionRepository {
+    override fun observeAllSections(): Flow<List<Section>> = MutableStateFlow(emptyList())
+
+    override fun observeSections(projectId: ProjectId): Flow<List<Section>> =
+        MutableStateFlow(emptyList())
+
+    override fun observeSection(id: SectionId): Flow<Section?> = MutableStateFlow(null)
+
+    override suspend fun createSection(projectId: ProjectId, name: String): SectionId =
+        error("Not used")
+
+    override suspend fun renameSection(id: SectionId, name: String) = Unit
+
+    override suspend fun deleteSection(id: SectionId) = Unit
 }
 
 private class FakeAppProjectRepository : ProjectRepository {

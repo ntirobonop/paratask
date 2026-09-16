@@ -59,6 +59,8 @@ import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.core.model.Project
 import io.github.ntirobonop.paratask.core.model.ProjectId
+import io.github.ntirobonop.paratask.core.model.Section
+import io.github.ntirobonop.paratask.core.model.SectionId
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -70,6 +72,7 @@ data class TaskDraft(
     val description: String = "",
     val dueDate: LocalDate? = null,
     val projectId: ProjectId? = null,
+    val sectionId: SectionId? = null,
 )
 
 enum class TaskListDestination {
@@ -138,13 +141,13 @@ fun TaskListContent(
 }
 
 @Composable
-private fun TaskRow(
+fun TaskRow(
     task: Task,
     onCompleteTask: (TaskId) -> Unit,
     onOpenTask: (TaskId) -> Unit,
-    showDueDate: Boolean,
-    project: Project?,
-    showProject: Boolean,
+    showDueDate: Boolean = true,
+    project: Project? = null,
+    showProject: Boolean = true,
 ) {
     Row(
         modifier = Modifier
@@ -235,14 +238,18 @@ fun TaskComposerSheet(
     onDismissRequest: () -> Unit,
     onCreateTask: (TaskDraft) -> Unit,
     initialProjectId: ProjectId? = null,
+    initialSectionId: SectionId? = null,
     projects: List<Project> = emptyList(),
+    sections: List<Section> = emptyList(),
 ) {
     var title by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
     var dueDateText by rememberSaveable { mutableStateOf(initialDueDate?.toString()) }
     var projectIdText by rememberSaveable { mutableStateOf(initialProjectId?.value) }
+    var sectionIdText by rememberSaveable { mutableStateOf(initialSectionId?.value) }
     val dueDate = dueDateText?.let(LocalDate::parse)
     val projectId = projectIdText?.let(::ProjectId)
+    val sectionId = sectionIdText?.let(::SectionId)
     val titleFocusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val createTask = {
@@ -253,6 +260,7 @@ fun TaskComposerSheet(
                     description = description,
                     dueDate = dueDate,
                     projectId = projectId,
+                    sectionId = sectionId,
                 ),
             )
         }
@@ -305,7 +313,19 @@ fun TaskComposerSheet(
             TaskProjectField(
                 projectId = projectId,
                 projects = projects,
-                onProjectChange = { projectIdText = it?.value },
+                onProjectChange = { selectedProjectId ->
+                    projectIdText = selectedProjectId?.value
+                    val selectedSection = sections.firstOrNull { section ->
+                        section.id.value == sectionIdText
+                    }
+                    if (selectedSection?.projectId != selectedProjectId) sectionIdText = null
+                },
+            )
+            TaskSectionField(
+                projectId = projectId,
+                sectionId = sectionId,
+                sections = sections,
+                onSectionChange = { sectionIdText = it?.value },
             )
             Button(
                 onClick = createTask,
@@ -319,6 +339,61 @@ fun TaskComposerSheet(
         LaunchedEffect(Unit) {
             titleFocusRequester.requestFocus()
             keyboardController?.show()
+        }
+    }
+}
+
+@Composable
+fun TaskSectionField(
+    projectId: ProjectId?,
+    sectionId: SectionId?,
+    sections: List<Section>,
+    onSectionChange: (SectionId?) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val availableSections = sections.filter { section -> section.projectId == projectId }
+    val selectedName = availableSections.firstOrNull { section -> section.id == sectionId }?.name
+        ?: "Без секции"
+    val enabled = projectId != null
+
+    Box(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = enabled) { expanded = true }
+                .semantics { contentDescription = "Выбрать секцию" }
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = "Секция", style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = if (enabled) selectedName else "—",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text("Без секции") },
+                onClick = {
+                    onSectionChange(null)
+                    expanded = false
+                },
+            )
+            availableSections.forEach { section ->
+                DropdownMenuItem(
+                    text = { Text(section.name) },
+                    onClick = {
+                        onSectionChange(section.id)
+                        expanded = false
+                    },
+                )
+            }
         }
     }
 }

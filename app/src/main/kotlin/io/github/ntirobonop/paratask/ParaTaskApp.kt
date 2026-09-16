@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.ntirobonop.paratask.core.data.ProjectRepository
+import io.github.ntirobonop.paratask.core.data.SectionRepository
 import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.ProjectId
 import io.github.ntirobonop.paratask.core.model.TaskId
@@ -28,6 +29,7 @@ import kotlinx.coroutines.launch
 fun ParaTaskApp(
     taskRepository: TaskRepository,
     projectRepository: ProjectRepository,
+    sectionRepository: SectionRepository,
     today: LocalDate = LocalDate.now(),
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -37,6 +39,8 @@ fun ParaTaskApp(
     val archivedProjects by projectRepository.observeArchivedProjects()
         .collectAsStateWithLifecycle(emptyList())
     val taskProjects = activeProjects + archivedProjects
+    val sections by sectionRepository.observeAllSections()
+        .collectAsStateWithLifecycle(emptyList())
     var selectedTaskId by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedProjectId by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedDestination by rememberSaveable { mutableStateOf(TopLevelDestination.INBOX.name) }
@@ -70,12 +74,14 @@ fun ParaTaskApp(
                 }
             },
             activeProjects = activeProjects,
+            sections = sections,
         )
 
         projectId != null -> ProjectRoute(
             projectId = projectId,
             taskRepository = taskRepository,
             projectRepository = projectRepository,
+            sectionRepository = sectionRepository,
             activeProjects = activeProjects,
             snackbarHostState = snackbarHostState,
             onBack = { selectedProjectId = null },
@@ -97,6 +103,7 @@ fun ParaTaskApp(
                     selectedDestination = TopLevelDestination.BROWSE.name
                 },
                 activeProjects = activeProjects,
+                sections = sections,
             )
 
             TopLevelDestination.TODAY -> TodayRoute(
@@ -114,6 +121,7 @@ fun ParaTaskApp(
                 },
                 activeProjects = activeProjects,
                 taskProjects = taskProjects,
+                sections = sections,
                 today = today,
             )
 
@@ -132,6 +140,7 @@ fun ParaTaskApp(
                 },
                 activeProjects = activeProjects,
                 taskProjects = taskProjects,
+                sections = sections,
                 today = today,
             )
 

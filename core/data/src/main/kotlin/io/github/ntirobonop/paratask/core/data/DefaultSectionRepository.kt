@@ -17,6 +17,9 @@ class DefaultSectionRepository(
     private val clock: Clock = Clock.systemUTC(),
     private val idFactory: () -> SectionId = SectionId::random,
 ) : SectionRepository {
+    override fun observeAllSections(): Flow<List<Section>> =
+        sectionDao.observeAllSections().map { sections -> sections.map(SectionEntity::toDomain) }
+
     override fun observeSections(projectId: ProjectId): Flow<List<Section>> =
         sectionDao.observeSections(projectId.value)
             .map { sections -> sections.map(SectionEntity::toDomain) }
