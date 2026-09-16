@@ -123,6 +123,8 @@ class DefaultTaskRepositoryTest {
 
         assignmentRepository.createTask(
             title = "Task",
+            description = "",
+            dueDate = null,
             projectId = projectId,
             sectionId = sectionId,
         )
@@ -146,6 +148,8 @@ class DefaultTaskRepositoryTest {
             runTest {
                 assignmentRepository.createTask(
                     title = "Task",
+                    description = "",
+                    dueDate = null,
                     projectId = projectId,
                     sectionId = sectionId,
                 )
@@ -164,6 +168,8 @@ class DefaultTaskRepositoryTest {
         )
         assignmentRepository.createTask(
             title = "Task",
+            description = "",
+            dueDate = null,
             projectId = firstProjectId,
             sectionId = sectionId,
         )
