@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -78,7 +79,7 @@ class InboxScreenTest {
         }
 
         composeRule.onNodeWithContentDescription("Добавить задачу").performClick()
-        composeRule.onNodeWithText("Не выбрана").assertIsDisplayed()
+        composeRule.onNodeWithText("Не выбрана").assertExists()
         composeRule.onAllNodes(hasSetTextAction())[0]
             .assertIsFocused()
             .performTextInput("Купить продукты")

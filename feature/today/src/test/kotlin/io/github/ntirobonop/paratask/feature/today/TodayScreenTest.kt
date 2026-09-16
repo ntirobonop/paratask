@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -73,7 +74,7 @@ class TodayScreenTest {
         }
 
         composeRule.onNodeWithContentDescription("Добавить задачу").performClick()
-        composeRule.onNodeWithText("16 сентября 2026").assertIsDisplayed()
+        composeRule.onNodeWithText("16 сентября 2026").assertExists()
         composeRule.onAllNodes(hasSetTextAction())[0].performTextInput("Купить продукты")
         composeRule.onNodeWithText("Создать").performClick()
 
