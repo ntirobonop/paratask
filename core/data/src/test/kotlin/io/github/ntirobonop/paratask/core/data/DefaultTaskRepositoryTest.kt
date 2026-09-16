@@ -128,9 +128,7 @@ private class FakeTaskDao : TaskDao {
     ): Flow<List<TaskEntity>> = tasks.map { values ->
         values
             .filter { task ->
-                task.dueDate != null &&
-                    task.dueDate >= startDate &&
-                    task.dueDate <= endDate &&
+                task.dueDate?.let { it >= startDate && it <= endDate } == true &&
                     task.deletedAt == null &&
                     !task.isCompleted
             }

@@ -106,7 +106,7 @@ private class FakeUpcomingRepository(initialTasks: List<Task> = emptyList()) : T
     ): Flow<List<Task>> {
         requestedRanges += startDate to endDate
         return activeTasks().map { tasks ->
-            tasks.filter { task -> task.dueDate != null && task.dueDate in startDate..endDate }
+            tasks.filter { task -> task.dueDate?.let { it in startDate..endDate } == true }
         }
     }
 

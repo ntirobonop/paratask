@@ -104,8 +104,7 @@ private class FakeTodayRepository(initialTasks: List<Task> = emptyList()) : Task
         endDate: LocalDate,
     ): Flow<List<Task>> = tasks.map { values ->
         values.values.filter { task ->
-            task.dueDate != null &&
-                task.dueDate in startDate..endDate &&
+            task.dueDate?.let { it in startDate..endDate } == true &&
                 task.deletedAt == null &&
                 !task.isCompleted
         }
