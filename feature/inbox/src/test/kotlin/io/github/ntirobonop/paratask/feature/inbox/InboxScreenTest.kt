@@ -17,6 +17,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
+import io.github.ntirobonop.paratask.core.ui.TaskDraft
 import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -43,6 +44,7 @@ class InboxScreenTest {
                     onCreateTask = {},
                     onCompleteTask = {},
                     onOpenTask = {},
+                    onNavigateToToday = {},
                 )
             }
         }
@@ -70,11 +72,13 @@ class InboxScreenTest {
                     },
                     onCompleteTask = {},
                     onOpenTask = {},
+                    onNavigateToToday = {},
                 )
             }
         }
 
         composeRule.onNodeWithContentDescription("Добавить задачу").performClick()
+        composeRule.onNodeWithText("Не выбрана").assertExists()
         composeRule.onAllNodes(hasSetTextAction())[0]
             .assertIsFocused()
             .performTextInput("Купить продукты")
@@ -115,6 +119,7 @@ class InboxScreenTest {
                     onCreateTask = {},
                     onCompleteTask = { completedTaskId = it },
                     onOpenTask = {},
+                    onNavigateToToday = {},
                 )
             }
         }
@@ -152,6 +157,7 @@ class InboxScreenTest {
                     onCreateTask = {},
                     onCompleteTask = {},
                     onOpenTask = { openedTaskId = it },
+                    onNavigateToToday = {},
                 )
             }
         }

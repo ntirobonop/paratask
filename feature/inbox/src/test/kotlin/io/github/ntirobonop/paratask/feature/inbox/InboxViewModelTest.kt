@@ -4,6 +4,7 @@ import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import java.time.Instant
+import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -86,16 +87,26 @@ private class FakeTaskRepository(
 
     override fun observeInbox(): Flow<List<Task>> = inbox
 
+    override fun observeToday(date: LocalDate): Flow<List<Task>> = inbox.map { tasks ->
+        tasks.filter { it.dueDate == date }
+    }
+
     override fun observeTask(id: TaskId): Flow<Task?> =
         inbox.map { tasks -> tasks.firstOrNull { task -> task.id == id } }
 
     override suspend fun createTask(
         title: String,
         description: String,
+        dueDate: LocalDate?,
     ): TaskId {
         createdDrafts += title to description
         val id = TaskId("created-${createdDrafts.size}")
-        allTasks[id] = task(id = id.value, title = title, description = description)
+        allTasks[id] = task(
+            id = id.value,
+            title = title,
+            description = description,
+            dueDate = dueDate,
+        )
         publish()
         return id
     }
@@ -140,10 +151,12 @@ private fun task(
     id: String,
     title: String = "Задача",
     description: String = "",
+    dueDate: LocalDate? = null,
 ): Task = Task(
     id = TaskId(id),
     title = title,
     description = description,
+    dueDate = dueDate,
     createdAt = NOW,
     updatedAt = NOW,
 )

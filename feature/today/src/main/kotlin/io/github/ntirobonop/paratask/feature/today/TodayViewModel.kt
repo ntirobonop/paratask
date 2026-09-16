@@ -1,4 +1,4 @@
-package io.github.ntirobonop.paratask.feature.inbox
+package io.github.ntirobonop.paratask.feature.today
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -18,39 +18,41 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-data class InboxUiState(
+data class TodayUiState(
+    val date: LocalDate,
     val tasks: List<Task> = emptyList(),
     val isLoading: Boolean = true,
 )
 
-sealed interface InboxUiEvent {
-    data class TaskCompleted(val taskId: TaskId) : InboxUiEvent
+sealed interface TodayUiEvent {
+    data class TaskCompleted(val taskId: TaskId) : TodayUiEvent
 
-    data class ShowMessage(val message: String) : InboxUiEvent
+    data class ShowMessage(val message: String) : TodayUiEvent
 }
 
-class InboxViewModel(
+class TodayViewModel(
     private val taskRepository: TaskRepository,
+    val today: LocalDate = LocalDate.now(),
 ) : ViewModel() {
-    private val eventChannel = Channel<InboxUiEvent>(capacity = Channel.BUFFERED)
-    val events: Flow<InboxUiEvent> = eventChannel.receiveAsFlow()
+    private val eventChannel = Channel<TodayUiEvent>(capacity = Channel.BUFFERED)
+    val events: Flow<TodayUiEvent> = eventChannel.receiveAsFlow()
 
-    val uiState = taskRepository.observeInbox()
-        .map { tasks -> InboxUiState(tasks = tasks, isLoading = false) }
+    val uiState = taskRepository.observeToday(today)
+        .map { tasks -> TodayUiState(date = today, tasks = tasks, isLoading = false) }
         .catch {
-            emit(InboxUiState(isLoading = false))
-            eventChannel.send(InboxUiEvent.ShowMessage("Не удалось загрузить задачи"))
+            emit(TodayUiState(date = today, isLoading = false))
+            eventChannel.send(TodayUiEvent.ShowMessage("Не удалось загрузить задачи"))
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = InboxUiState(),
+            initialValue = TodayUiState(date = today),
         )
 
     fun createTask(
         title: String,
         description: String,
-        dueDate: LocalDate? = null,
+        dueDate: LocalDate?,
     ) {
         if (title.isBlank()) return
 
@@ -62,7 +64,7 @@ class InboxViewModel(
                     dueDate = dueDate,
                 )
             }.onFailure {
-                eventChannel.send(InboxUiEvent.ShowMessage("Не удалось создать задачу"))
+                eventChannel.send(TodayUiEvent.ShowMessage("Не удалось создать задачу"))
             }
         }
     }
@@ -72,9 +74,9 @@ class InboxViewModel(
             runCatching {
                 taskRepository.setCompleted(id = taskId, completed = true)
             }.onSuccess {
-                eventChannel.send(InboxUiEvent.TaskCompleted(taskId))
+                eventChannel.send(TodayUiEvent.TaskCompleted(taskId))
             }.onFailure {
-                eventChannel.send(InboxUiEvent.ShowMessage("Не удалось выполнить задачу"))
+                eventChannel.send(TodayUiEvent.ShowMessage("Не удалось выполнить задачу"))
             }
         }
     }
@@ -84,14 +86,17 @@ class InboxViewModel(
             runCatching {
                 taskRepository.setCompleted(id = taskId, completed = false)
             }.onFailure {
-                eventChannel.send(InboxUiEvent.ShowMessage("Не удалось вернуть задачу"))
+                eventChannel.send(TodayUiEvent.ShowMessage("Не удалось вернуть задачу"))
             }
         }
     }
 
     companion object {
-        fun factory(taskRepository: TaskRepository): ViewModelProvider.Factory = viewModelFactory {
-            initializer { InboxViewModel(taskRepository) }
+        fun factory(
+            taskRepository: TaskRepository,
+            today: LocalDate = LocalDate.now(),
+        ): ViewModelProvider.Factory = viewModelFactory {
+            initializer { TodayViewModel(taskRepository = taskRepository, today = today) }
         }
     }
 }

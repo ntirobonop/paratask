@@ -4,6 +4,7 @@ import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import java.time.Instant
+import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,6 +53,38 @@ class TaskDetailsViewModelTest {
 
         assertEquals("Купить хлеб", repository.updatedTasks.single().title)
         assertFalse(viewModel.uiState.value.hasPendingChanges)
+    }
+
+    @Test
+    fun `due date is autosaved with other task details`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val repository = FakeTaskRepository(task())
+            val viewModel = TaskDetailsViewModel(repository, TASK_ID, autosaveDelayMillis = 500)
+            advanceUntilIdle()
+
+            val dueDate = LocalDate.parse("2026-09-16")
+            viewModel.updateDueDate(dueDate)
+            advanceTimeBy(500)
+            runCurrent()
+
+            assertEquals(dueDate, repository.updatedTasks.single().dueDate)
+            assertEquals(dueDate, repository.task(TASK_ID)?.dueDate)
+            assertFalse(viewModel.uiState.value.hasPendingChanges)
+        }
+
+    @Test
+    fun `due date can be cleared by autosave`() = runTest(mainDispatcherRule.testDispatcher) {
+        val dueDate = LocalDate.parse("2026-09-16")
+        val repository = FakeTaskRepository(task().copy(dueDate = dueDate))
+        val viewModel = TaskDetailsViewModel(repository, TASK_ID, autosaveDelayMillis = 500)
+        advanceUntilIdle()
+
+        viewModel.updateDueDate(null)
+        advanceTimeBy(500)
+        runCurrent()
+
+        assertEquals(null, repository.updatedTasks.single().dueDate)
+        assertEquals(null, repository.task(TASK_ID)?.dueDate)
     }
 
     @Test
@@ -141,9 +174,17 @@ private class FakeTaskRepository(initialTask: Task? = null) : TaskRepository {
         values.values.filter { it.deletedAt == null && !it.isCompleted }
     }
 
+    override fun observeToday(date: LocalDate): Flow<List<Task>> = tasks.map { values ->
+        values.values.filter { it.dueDate == date && it.deletedAt == null && !it.isCompleted }
+    }
+
     override fun observeTask(id: TaskId): Flow<Task?> = tasks.map { it[id] }
 
-    override suspend fun createTask(title: String, description: String): TaskId =
+    override suspend fun createTask(
+        title: String,
+        description: String,
+        dueDate: LocalDate?,
+    ): TaskId =
         error("Not used")
 
     override suspend fun updateTask(task: Task) {

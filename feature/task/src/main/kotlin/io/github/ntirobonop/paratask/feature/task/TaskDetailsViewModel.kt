@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
+import java.time.LocalDate
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -24,6 +25,7 @@ data class TaskDetailsUiState(
     val isLoading: Boolean = true,
     val title: String = "",
     val description: String = "",
+    val dueDate: LocalDate? = null,
     val isCompleted: Boolean = false,
     val hasPendingChanges: Boolean = false,
     val taskMissing: Boolean = false,
@@ -84,6 +86,15 @@ class TaskDetailsViewModel(
         scheduleAutosave()
     }
 
+    fun updateDueDate(dueDate: LocalDate?) {
+        editRevision += 1
+        _uiState.value = _uiState.value.copy(
+            dueDate = dueDate,
+            hasPendingChanges = true,
+        )
+        scheduleAutosave()
+    }
+
     fun setCompleted(completed: Boolean) {
         saveJob?.cancel()
         viewModelScope.launch {
@@ -136,6 +147,7 @@ class TaskDetailsViewModel(
             isLoading = false,
             title = if (keepDraft) state.title else task.title,
             description = if (keepDraft) state.description else task.description,
+            dueDate = if (keepDraft) state.dueDate else task.dueDate,
             isCompleted = task.isCompleted,
             taskMissing = false,
         )
@@ -162,6 +174,7 @@ class TaskDetailsViewModel(
                 task.copy(
                     title = state.title,
                     description = state.description,
+                    dueDate = state.dueDate,
                 ),
             )
         }.onSuccess {
@@ -181,6 +194,7 @@ class TaskDetailsViewModel(
         _uiState.value = _uiState.value.copy(
             title = task.title,
             description = task.description,
+            dueDate = task.dueDate,
             hasPendingChanges = false,
         )
     }

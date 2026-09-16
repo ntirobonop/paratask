@@ -42,6 +42,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.TaskId
+import io.github.ntirobonop.paratask.core.ui.TaskDateField
+import java.time.LocalDate
 
 @Composable
 fun TaskDetailsRoute(
@@ -75,6 +77,7 @@ fun TaskDetailsRoute(
         snackbarHostState = snackbarHostState,
         onTitleChange = viewModel::updateTitle,
         onDescriptionChange = viewModel::updateDescription,
+        onDateChange = viewModel::updateDueDate,
         onCompletedChange = viewModel::setCompleted,
         onBack = viewModel::navigateBack,
         onDelete = viewModel::deleteTask,
@@ -92,6 +95,7 @@ fun TaskDetailsScreen(
     onCompletedChange: (Boolean) -> Unit,
     onBack: () -> Unit,
     onDelete: () -> Unit,
+    onDateChange: (LocalDate?) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var showActions by remember { mutableStateOf(false) }
@@ -161,6 +165,7 @@ fun TaskDetailsScreen(
                 uiState = uiState,
                 onTitleChange = onTitleChange,
                 onDescriptionChange = onDescriptionChange,
+                onDateChange = onDateChange,
                 onCompletedChange = onCompletedChange,
                 modifier = Modifier
                     .fillMaxSize()
@@ -175,6 +180,7 @@ private fun TaskEditor(
     uiState: TaskDetailsUiState,
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
+    onDateChange: (LocalDate?) -> Unit,
     onCompletedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -217,6 +223,13 @@ private fun TaskEditor(
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Описание") },
             minLines = 5,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+            ),
+        )
+        TaskDateField(
+            dueDate = uiState.dueDate,
+            onDateChange = onDateChange,
         )
     }
 }

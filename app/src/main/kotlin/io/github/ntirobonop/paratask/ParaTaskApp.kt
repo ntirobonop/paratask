@@ -14,21 +14,38 @@ import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.feature.inbox.InboxRoute
 import io.github.ntirobonop.paratask.feature.task.TaskDetailsRoute
+import io.github.ntirobonop.paratask.feature.today.TodayRoute
+import java.time.LocalDate
 import kotlinx.coroutines.launch
 
 @Composable
-fun ParaTaskApp(taskRepository: TaskRepository) {
+fun ParaTaskApp(
+    taskRepository: TaskRepository,
+    today: LocalDate = LocalDate.now(),
+) {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     var selectedTaskId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedDestination by rememberSaveable { mutableStateOf(TopLevelDestination.INBOX.name) }
 
     val taskId = selectedTaskId?.let(::TaskId)
     if (taskId == null) {
-        InboxRoute(
-            taskRepository = taskRepository,
-            snackbarHostState = snackbarHostState,
-            onOpenTask = { selectedTaskId = it.value },
-        )
+        when (TopLevelDestination.valueOf(selectedDestination)) {
+            TopLevelDestination.INBOX -> InboxRoute(
+                taskRepository = taskRepository,
+                snackbarHostState = snackbarHostState,
+                onOpenTask = { selectedTaskId = it.value },
+                onNavigateToToday = { selectedDestination = TopLevelDestination.TODAY.name },
+            )
+
+            TopLevelDestination.TODAY -> TodayRoute(
+                taskRepository = taskRepository,
+                snackbarHostState = snackbarHostState,
+                onOpenTask = { selectedTaskId = it.value },
+                onNavigateToInbox = { selectedDestination = TopLevelDestination.INBOX.name },
+                today = today,
+            )
+        }
     } else {
         TaskDetailsRoute(
             taskRepository = taskRepository,
@@ -57,4 +74,9 @@ fun ParaTaskApp(taskRepository: TaskRepository) {
             },
         )
     }
+}
+
+private enum class TopLevelDestination {
+    INBOX,
+    TODAY,
 }
