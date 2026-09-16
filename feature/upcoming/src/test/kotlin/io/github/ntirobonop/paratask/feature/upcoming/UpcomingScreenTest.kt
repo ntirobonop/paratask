@@ -6,9 +6,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -63,7 +63,10 @@ class UpcomingScreenTest {
         composeRule.onNodeWithContentDescription("воскресенье, 20 сентября, задач: 0")
             .assertIsDisplayed()
         composeRule.onNodeWithText("Купить продукты").assertIsDisplayed()
-        composeRule.onNodeWithText("16 сентября 2026").assertDoesNotExist()
+        assertEquals(
+            0,
+            composeRule.onAllNodes(hasText("16 сентября 2026")).fetchSemanticsNodes().size,
+        )
     }
 
     @Test
