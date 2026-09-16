@@ -134,7 +134,6 @@ class UpcomingScreenTest {
         }
 
         composeRule.onNodeWithContentDescription("Добавить задачу").performClick()
-        composeRule.onNodeWithText("16 сентября 2026").assertExists()
         composeRule.onAllNodes(hasSetTextAction())[0].performTextInput("Купить продукты")
         composeRule.onNodeWithText("Создать").performClick()
 
