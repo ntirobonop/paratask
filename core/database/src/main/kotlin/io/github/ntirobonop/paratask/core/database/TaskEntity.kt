@@ -15,9 +15,21 @@ import androidx.room.PrimaryKey
             childColumns = ["project_id"],
             onDelete = ForeignKey.SET_NULL,
         ),
+        ForeignKey(
+            entity = SectionEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["section_id"],
+            onDelete = ForeignKey.SET_NULL,
+        ),
+        ForeignKey(
+            entity = SectionEntity::class,
+            parentColumns = ["id", "project_id"],
+            childColumns = ["section_id", "project_id"],
+        ),
     ],
     indices = [
         Index(value = ["project_id", "is_completed", "deleted_at"]),
+        Index(value = ["section_id", "project_id"]),
         Index(value = ["parent_task_id"]),
     ],
 )

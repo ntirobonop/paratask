@@ -3,6 +3,7 @@ package io.github.ntirobonop.paratask.core.data
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.core.model.ProjectId
+import io.github.ntirobonop.paratask.core.model.SectionId
 import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -35,6 +36,22 @@ interface TaskRepository {
     ): TaskId {
         require(projectId == null) { "This repository does not support project assignment" }
         return createTask(title = title, description = description, dueDate = dueDate)
+    }
+
+    suspend fun createTask(
+        title: String,
+        description: String,
+        dueDate: LocalDate?,
+        projectId: ProjectId?,
+        sectionId: SectionId?,
+    ): TaskId {
+        require(sectionId == null) { "This repository does not support section assignment" }
+        return createTask(
+            title = title,
+            description = description,
+            dueDate = dueDate,
+            projectId = projectId,
+        )
     }
 
     suspend fun updateTask(task: Task)

@@ -3,6 +3,7 @@ package io.github.ntirobonop.paratask.core.data
 import io.github.ntirobonop.paratask.core.database.TaskDao
 import io.github.ntirobonop.paratask.core.database.TaskEntity
 import io.github.ntirobonop.paratask.core.database.ProjectDao
+import io.github.ntirobonop.paratask.core.database.SectionDao
 import io.github.ntirobonop.paratask.core.model.ProjectId
 import io.github.ntirobonop.paratask.core.model.SectionId
 import io.github.ntirobonop.paratask.core.model.Task
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.map
 class DefaultTaskRepository(
     private val taskDao: TaskDao,
     private val projectDao: ProjectDao? = null,
+    private val sectionDao: SectionDao? = null,
     private val clock: Clock = Clock.systemUTC(),
     private val idFactory: () -> TaskId = TaskId::random,
 ) : TaskRepository {
@@ -60,10 +62,24 @@ class DefaultTaskRepository(
         description: String,
         dueDate: LocalDate?,
         projectId: ProjectId?,
+    ): TaskId = createTask(
+        title = title,
+        description = description,
+        dueDate = dueDate,
+        projectId = projectId,
+        sectionId = null,
+    )
+
+    override suspend fun createTask(
+        title: String,
+        description: String,
+        dueDate: LocalDate?,
+        projectId: ProjectId?,
+        sectionId: SectionId?,
     ): TaskId {
         val normalizedTitle = title.trim()
         require(normalizedTitle.isNotEmpty()) { "Task title must not be blank" }
-        validateNewAssignment(projectId)
+        validateAssignment(projectId = projectId, sectionId = sectionId)
 
         val id = idFactory()
         val now = clock.instant()
@@ -75,7 +91,7 @@ class DefaultTaskRepository(
                 dueDate = dueDate?.toString(),
                 dueTime = null,
                 projectId = projectId?.value,
-                sectionId = null,
+                sectionId = sectionId?.value,
                 parentTaskId = null,
                 isCompleted = false,
                 createdAt = now.toEpochMilli(),
@@ -91,13 +107,18 @@ class DefaultTaskRepository(
     override suspend fun updateTask(task: Task) {
         require(task.title.isNotBlank()) { "Task title must not be blank" }
         val current = taskDao.getTask(task.id.value) ?: error("Task does not exist")
-        if (current.projectId != task.projectId?.value) {
-            validateNewAssignment(task.projectId)
+        val projectChanged = current.projectId != task.projectId?.value
+        var normalizedSectionId = task.sectionId
+        if (projectChanged && normalizedSectionId != null) {
+            val section = sectionDao?.getSection(normalizedSectionId.value)
+            if (section?.projectId != task.projectId?.value) normalizedSectionId = null
         }
+        validateAssignment(projectId = task.projectId, sectionId = normalizedSectionId)
         taskDao.updateTask(
             task.copy(
                 title = task.title.trim(),
                 description = task.description.trim(),
+                sectionId = normalizedSectionId,
                 updatedAt = clock.instant(),
             ).toEntity(),
         )
@@ -128,11 +149,18 @@ class DefaultTaskRepository(
         )
     }
 
-    private suspend fun validateNewAssignment(projectId: ProjectId?) {
+    private suspend fun validateAssignment(projectId: ProjectId?, sectionId: SectionId?) {
+        require(projectId != null || sectionId == null) { "Inbox tasks cannot have a section" }
         if (projectId == null) return
         val project = projectDao?.getProject(projectId.value)
         require(project != null && !project.isArchived) {
             "Tasks can only be assigned to an active project"
+        }
+        if (sectionId != null) {
+            val section = sectionDao?.getSection(sectionId.value)
+            require(section != null && section.projectId == projectId.value) {
+                "Task section must belong to its project"
+            }
         }
     }
 }
