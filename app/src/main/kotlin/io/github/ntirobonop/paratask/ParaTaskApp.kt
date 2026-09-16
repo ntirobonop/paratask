@@ -83,6 +83,7 @@ fun ParaTaskApp(
             projectRepository = projectRepository,
             sectionRepository = sectionRepository,
             activeProjects = activeProjects,
+            allSections = sections,
             snackbarHostState = snackbarHostState,
             onBack = { selectedProjectId = null },
             onOpenTask = { selectedTaskId = it.value },

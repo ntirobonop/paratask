@@ -368,6 +368,7 @@ fun ProjectRoute(
     projectRepository: ProjectRepository,
     sectionRepository: SectionRepository,
     activeProjects: List<Project>,
+    allSections: List<Section> = emptyList(),
     snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
     onOpenTask: (TaskId) -> Unit,
@@ -390,6 +391,7 @@ fun ProjectRoute(
     val editingSection = uiState.sections.firstOrNull { section ->
         section.id.value == editingSectionId
     }
+    val composerSections = allSections.ifEmpty { uiState.sections }
     BackHandler(onBack = onBack)
 
     LaunchedEffect(viewModel, snackbarHostState) {
@@ -489,7 +491,7 @@ fun ProjectRoute(
             initialProjectId = projectId,
             initialSectionId = quickAddSectionId?.let(::SectionId),
             projects = activeProjects,
-            sections = uiState.sections,
+            sections = composerSections,
         )
     }
 
