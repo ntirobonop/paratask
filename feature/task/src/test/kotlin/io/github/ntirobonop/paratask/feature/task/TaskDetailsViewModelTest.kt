@@ -4,6 +4,7 @@ import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import java.time.Instant
+import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -141,9 +142,17 @@ private class FakeTaskRepository(initialTask: Task? = null) : TaskRepository {
         values.values.filter { it.deletedAt == null && !it.isCompleted }
     }
 
+    override fun observeToday(date: LocalDate): Flow<List<Task>> = tasks.map { values ->
+        values.values.filter { it.dueDate == date && it.deletedAt == null && !it.isCompleted }
+    }
+
     override fun observeTask(id: TaskId): Flow<Task?> = tasks.map { it[id] }
 
-    override suspend fun createTask(title: String, description: String): TaskId =
+    override suspend fun createTask(
+        title: String,
+        description: String,
+        dueDate: LocalDate?,
+    ): TaskId =
         error("Not used")
 
     override suspend fun updateTask(task: Task) {

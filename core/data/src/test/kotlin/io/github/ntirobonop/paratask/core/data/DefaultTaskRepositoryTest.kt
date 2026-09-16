@@ -73,6 +73,17 @@ class DefaultTaskRepositoryTest {
         assertEquals(listOf(taskId), repository.observeInbox().first().map { it.id })
         assertNull(repository.observeTask(taskId).first()?.deletedAt)
     }
+
+    @Test
+    fun createTaskPersistsDateAndExposesItInToday() = runTest {
+        val date = java.time.LocalDate.parse("2026-09-15")
+
+        repository.createTask(title = "Task", dueDate = date)
+
+        assertEquals(date, repository.observeTask(taskId).first()?.dueDate)
+        assertEquals(listOf(taskId), repository.observeToday(date).first().map { it.id })
+        assertTrue(repository.observeToday(date.plusDays(1)).first().isEmpty())
+    }
 }
 
 private class FakeTaskDao : TaskDao {
@@ -81,6 +92,12 @@ private class FakeTaskDao : TaskDao {
     override fun observeInbox(): Flow<List<TaskEntity>> = tasks.map { values ->
         values
             .filter { it.projectId == null && it.deletedAt == null && !it.isCompleted }
+            .sortedWith(compareBy(TaskEntity::sortOrder, TaskEntity::createdAt))
+    }
+
+    override fun observeToday(dueDate: String): Flow<List<TaskEntity>> = tasks.map { values ->
+        values
+            .filter { it.dueDate == dueDate && it.deletedAt == null && !it.isCompleted }
             .sortedWith(compareBy(TaskEntity::sortOrder, TaskEntity::createdAt))
     }
 

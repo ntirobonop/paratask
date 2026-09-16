@@ -21,12 +21,16 @@ class DefaultTaskRepository(
     override fun observeInbox(): Flow<List<Task>> =
         taskDao.observeInbox().map { tasks -> tasks.map(TaskEntity::toDomain) }
 
+    override fun observeToday(date: LocalDate): Flow<List<Task>> =
+        taskDao.observeToday(date.toString()).map { tasks -> tasks.map(TaskEntity::toDomain) }
+
     override fun observeTask(id: TaskId): Flow<Task?> =
         taskDao.observeTask(id.value).map { task -> task?.toDomain() }
 
     override suspend fun createTask(
         title: String,
         description: String,
+        dueDate: LocalDate?,
     ): TaskId {
         val normalizedTitle = title.trim()
         require(normalizedTitle.isNotEmpty()) { "Task title must not be blank" }
@@ -38,7 +42,7 @@ class DefaultTaskRepository(
                 id = id.value,
                 title = normalizedTitle,
                 description = description.trim(),
-                dueDate = null,
+                dueDate = dueDate?.toString(),
                 dueTime = null,
                 projectId = null,
                 sectionId = null,

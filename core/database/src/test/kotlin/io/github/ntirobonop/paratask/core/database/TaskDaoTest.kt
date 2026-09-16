@@ -104,6 +104,25 @@ class TaskDaoTest {
         assertEquals(300L, restored?.updatedAt)
         assertEquals(listOf("task"), dao.observeInbox().first().map(TaskEntity::id))
     }
+
+    @Test
+    fun `today contains only active tasks for the selected date`() = runTest {
+        dao.insertTask(task(id = "today", dueDate = "2026-09-15"))
+        dao.insertTask(task(id = "tomorrow", dueDate = "2026-09-16"))
+        dao.insertTask(
+            task(
+                id = "completed",
+                dueDate = "2026-09-15",
+                isCompleted = true,
+                completedAt = 20,
+            ),
+        )
+        dao.insertTask(task(id = "deleted", dueDate = "2026-09-15", deletedAt = 20))
+
+        val today = dao.observeToday("2026-09-15").first()
+
+        assertEquals(listOf("today"), today.map(TaskEntity::id))
+    }
 }
 
 private fun task(
@@ -113,11 +132,12 @@ private fun task(
     isCompleted: Boolean = false,
     completedAt: Long? = null,
     deletedAt: Long? = null,
+    dueDate: String? = null,
 ): TaskEntity = TaskEntity(
     id = id,
     title = id,
     description = "",
-    dueDate = null,
+    dueDate = dueDate,
     dueTime = null,
     projectId = projectId,
     sectionId = null,
