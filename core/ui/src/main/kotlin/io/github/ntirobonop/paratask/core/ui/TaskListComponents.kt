@@ -215,8 +215,8 @@ fun TaskComposerSheet(
                 .navigationBarsPadding()
                 .imePadding()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
                 text = "Новая задача",
@@ -241,7 +241,7 @@ fun TaskComposerSheet(
                 onValueChange = { description = it },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Описание") },
-                minLines = 3,
+                minLines = 2,
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
                     imeAction = ImeAction.Done,
@@ -290,7 +290,7 @@ fun TaskProjectField(
                 .fillMaxWidth()
                 .clickable { expanded = true }
                 .semantics { contentDescription = "Выбрать проект" }
-                .padding(vertical = 12.dp),
+                .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
