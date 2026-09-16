@@ -4,7 +4,7 @@ ParaTask is a local-first Android task manager focused on fast capture and flexi
 
 ## Status
 
-Versions `v0.1.0` and `v0.2.0` provide a persistent offline Inbox, Quick Add, completion with Undo, and editable Task Details with autosave and soft deletion. Development is currently focused on `v0.3`: task dates, a Today destination, and contextual task creation.
+Versions `v0.1.0` through `v0.3.0` provide a persistent offline Inbox, Quick Add, completion with Undo, editable Task Details, task dates, and Today. Development is currently focused on `v0.4`: the Upcoming week calendar, date indicators, and selected-day task creation.
 
 ## Planned v1.0 scope
 
@@ -46,7 +46,7 @@ Run all checks used by CI:
 
 ## Architecture
 
-The project uses unidirectional data flow and feature-oriented modules. See [the technical blueprint](docs/architecture/technical-blueprint.md), [the v0.1 delivery plan](docs/development/v0.1-plan.md), [the v0.2 delivery plan](docs/development/v0.2-plan.md), and [the v0.3 delivery plan](docs/development/v0.3-plan.md).
+The project uses unidirectional data flow and feature-oriented modules. See [the technical blueprint](docs/architecture/technical-blueprint.md) and the delivery plans for [v0.1](docs/development/v0.1-plan.md), [v0.2](docs/development/v0.2-plan.md), [v0.3](docs/development/v0.3-plan.md), and [v0.4](docs/development/v0.4-plan.md).
 
 ## License
 

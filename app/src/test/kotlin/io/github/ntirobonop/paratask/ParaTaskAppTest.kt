@@ -88,6 +88,31 @@ class ParaTaskAppTest {
 
         composeRule.onNodeWithText("Купить продукты").assertIsDisplayed()
     }
+
+    @Test
+    fun `Upcoming navigation shows current week and tasks due today`() {
+        val today = LocalDate.parse("2026-09-16")
+        val repository = FakeAppTaskRepository(task().copy(dueDate = today))
+        composeRule.setContent {
+            MaterialTheme {
+                ParaTaskApp(taskRepository = repository, today = today)
+            }
+        }
+
+        composeRule.onNodeWithText("Предстоящие").performClick()
+
+        composeRule.onNodeWithContentDescription(
+            "среда, 16 сентября, задач: 1, выбрано",
+        ).assertIsDisplayed()
+        composeRule.onNodeWithText("Купить продукты").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Купить продукты").performClick()
+        composeRule.onNodeWithContentDescription("Назад").performClick()
+
+        composeRule.onNodeWithContentDescription(
+            "среда, 16 сентября, задач: 1, выбрано",
+        ).assertIsDisplayed()
+    }
 }
 
 private class FakeAppTaskRepository(initialTask: Task) : TaskRepository {

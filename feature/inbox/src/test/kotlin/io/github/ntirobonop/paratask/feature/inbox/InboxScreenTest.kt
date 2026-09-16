@@ -45,6 +45,7 @@ class InboxScreenTest {
                     onCompleteTask = {},
                     onOpenTask = {},
                     onNavigateToToday = {},
+                    onNavigateToUpcoming = {},
                 )
             }
         }
@@ -73,6 +74,7 @@ class InboxScreenTest {
                     onCompleteTask = {},
                     onOpenTask = {},
                     onNavigateToToday = {},
+                    onNavigateToUpcoming = {},
                 )
             }
         }
@@ -120,6 +122,7 @@ class InboxScreenTest {
                     onCompleteTask = { completedTaskId = it },
                     onOpenTask = {},
                     onNavigateToToday = {},
+                    onNavigateToUpcoming = {},
                 )
             }
         }
@@ -158,6 +161,7 @@ class InboxScreenTest {
                     onCompleteTask = {},
                     onOpenTask = { openedTaskId = it },
                     onNavigateToToday = {},
+                    onNavigateToUpcoming = {},
                 )
             }
         }

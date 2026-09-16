@@ -15,6 +15,7 @@ import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.feature.inbox.InboxRoute
 import io.github.ntirobonop.paratask.feature.task.TaskDetailsRoute
 import io.github.ntirobonop.paratask.feature.today.TodayRoute
+import io.github.ntirobonop.paratask.feature.upcoming.UpcomingRoute
 import java.time.LocalDate
 import kotlinx.coroutines.launch
 
@@ -36,6 +37,9 @@ fun ParaTaskApp(
                 snackbarHostState = snackbarHostState,
                 onOpenTask = { selectedTaskId = it.value },
                 onNavigateToToday = { selectedDestination = TopLevelDestination.TODAY.name },
+                onNavigateToUpcoming = {
+                    selectedDestination = TopLevelDestination.UPCOMING.name
+                },
             )
 
             TopLevelDestination.TODAY -> TodayRoute(
@@ -43,6 +47,18 @@ fun ParaTaskApp(
                 snackbarHostState = snackbarHostState,
                 onOpenTask = { selectedTaskId = it.value },
                 onNavigateToInbox = { selectedDestination = TopLevelDestination.INBOX.name },
+                onNavigateToUpcoming = {
+                    selectedDestination = TopLevelDestination.UPCOMING.name
+                },
+                today = today,
+            )
+
+            TopLevelDestination.UPCOMING -> UpcomingRoute(
+                taskRepository = taskRepository,
+                snackbarHostState = snackbarHostState,
+                onOpenTask = { selectedTaskId = it.value },
+                onNavigateToInbox = { selectedDestination = TopLevelDestination.INBOX.name },
+                onNavigateToToday = { selectedDestination = TopLevelDestination.TODAY.name },
                 today = today,
             )
         }
@@ -79,4 +95,5 @@ fun ParaTaskApp(
 private enum class TopLevelDestination {
     INBOX,
     TODAY,
+    UPCOMING,
 }
