@@ -1,6 +1,8 @@
 package io.github.ntirobonop.paratask.feature.task
 
 import io.github.ntirobonop.paratask.core.data.TaskRepository
+import io.github.ntirobonop.paratask.core.model.ProjectId
+import io.github.ntirobonop.paratask.core.model.SectionId
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import java.time.Instant
@@ -86,6 +88,38 @@ class TaskDetailsViewModelTest {
         assertEquals(null, repository.updatedTasks.single().dueDate)
         assertEquals(null, repository.task(TASK_ID)?.dueDate)
     }
+
+    @Test
+    fun `section is autosaved with task details`() = runTest(mainDispatcherRule.testDispatcher) {
+        val repository = FakeTaskRepository(task().copy(projectId = PROJECT_ID))
+        val viewModel = TaskDetailsViewModel(repository, TASK_ID, autosaveDelayMillis = 500)
+        advanceUntilIdle()
+
+        viewModel.updateSection(SECTION_ID)
+        advanceTimeBy(500)
+        runCurrent()
+
+        assertEquals(SECTION_ID, repository.updatedTasks.single().sectionId)
+        assertEquals(SECTION_ID, repository.task(TASK_ID)?.sectionId)
+    }
+
+    @Test
+    fun `changing project clears incompatible section`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val repository = FakeTaskRepository(
+                task().copy(projectId = PROJECT_ID, sectionId = SECTION_ID),
+            )
+            val viewModel = TaskDetailsViewModel(repository, TASK_ID, autosaveDelayMillis = 500)
+            advanceUntilIdle()
+
+            val otherProjectId = ProjectId("project-2")
+            viewModel.updateProject(otherProjectId)
+            advanceTimeBy(500)
+            runCurrent()
+
+            assertEquals(otherProjectId, repository.updatedTasks.single().projectId)
+            assertEquals(null, repository.updatedTasks.single().sectionId)
+        }
 
     @Test
     fun `blank title does not replace persisted task`() = runTest(mainDispatcherRule.testDispatcher) {
@@ -219,6 +253,8 @@ private class FakeTaskRepository(initialTask: Task? = null) : TaskRepository {
 }
 
 private val TASK_ID = TaskId("task-1")
+private val PROJECT_ID = ProjectId("project-1")
+private val SECTION_ID = SectionId("section-1")
 private val NOW: Instant = Instant.parse("2026-09-15T12:00:00Z")
 
 private fun task(): Task = Task(
