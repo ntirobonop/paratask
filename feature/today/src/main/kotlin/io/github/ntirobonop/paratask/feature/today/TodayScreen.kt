@@ -36,6 +36,7 @@ fun TodayRoute(
     snackbarHostState: SnackbarHostState,
     onOpenTask: (TaskId) -> Unit,
     onNavigateToInbox: () -> Unit,
+    onNavigateToUpcoming: () -> Unit,
     today: LocalDate = LocalDate.now(),
     modifier: Modifier = Modifier,
     viewModel: TodayViewModel = viewModel(factory = TodayViewModel.factory(taskRepository, today)),
@@ -79,6 +80,7 @@ fun TodayRoute(
         onCompleteTask = viewModel::completeTask,
         onOpenTask = onOpenTask,
         onNavigateToInbox = onNavigateToInbox,
+        onNavigateToUpcoming = onNavigateToUpcoming,
         modifier = modifier,
     )
 }
@@ -95,6 +97,7 @@ fun TodayScreen(
     onCompleteTask: (TaskId) -> Unit,
     onOpenTask: (TaskId) -> Unit,
     onNavigateToInbox: () -> Unit,
+    onNavigateToUpcoming: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -113,7 +116,11 @@ fun TodayScreen(
             ParaTaskBottomNavigation(
                 selectedDestination = TaskListDestination.TODAY,
                 onDestinationSelected = { destination ->
-                    if (destination == TaskListDestination.INBOX) onNavigateToInbox()
+                    when (destination) {
+                        TaskListDestination.INBOX -> onNavigateToInbox()
+                        TaskListDestination.UPCOMING -> onNavigateToUpcoming()
+                        else -> Unit
+                    }
                 },
             )
         },

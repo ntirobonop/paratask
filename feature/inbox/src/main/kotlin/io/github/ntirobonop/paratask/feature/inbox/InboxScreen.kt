@@ -38,6 +38,7 @@ fun InboxRoute(
     snackbarHostState: SnackbarHostState,
     onOpenTask: (TaskId) -> Unit,
     onNavigateToToday: () -> Unit,
+    onNavigateToUpcoming: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: InboxViewModel = viewModel(factory = InboxViewModel.factory(taskRepository)),
 ) {
@@ -80,6 +81,7 @@ fun InboxRoute(
         onCompleteTask = viewModel::completeTask,
         onOpenTask = onOpenTask,
         onNavigateToToday = onNavigateToToday,
+        onNavigateToUpcoming = onNavigateToUpcoming,
         modifier = modifier,
     )
 }
@@ -96,6 +98,7 @@ fun InboxScreen(
     onCompleteTask: (TaskId) -> Unit,
     onOpenTask: (TaskId) -> Unit,
     onNavigateToToday: () -> Unit,
+    onNavigateToUpcoming: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -116,7 +119,11 @@ fun InboxScreen(
             ParaTaskBottomNavigation(
                 selectedDestination = TaskListDestination.INBOX,
                 onDestinationSelected = { destination ->
-                    if (destination == TaskListDestination.TODAY) onNavigateToToday()
+                    when (destination) {
+                        TaskListDestination.TODAY -> onNavigateToToday()
+                        TaskListDestination.UPCOMING -> onNavigateToUpcoming()
+                        else -> Unit
+                    }
                 },
             )
         },
@@ -154,6 +161,7 @@ private fun InboxEmptyPreview() {
         onCompleteTask = {},
         onOpenTask = {},
         onNavigateToToday = {},
+        onNavigateToUpcoming = {},
     )
 }
 
@@ -182,5 +190,6 @@ private fun InboxWithTasksPreview() {
         onCompleteTask = {},
         onOpenTask = {},
         onNavigateToToday = {},
+        onNavigateToUpcoming = {},
     )
 }

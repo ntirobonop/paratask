@@ -24,6 +24,17 @@ class DefaultTaskRepository(
     override fun observeToday(date: LocalDate): Flow<List<Task>> =
         taskDao.observeToday(date.toString()).map { tasks -> tasks.map(TaskEntity::toDomain) }
 
+    override fun observeTasksInDateRange(
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): Flow<List<Task>> {
+        require(!endDate.isBefore(startDate)) { "End date must not be before start date" }
+        return taskDao.observeTasksInDateRange(
+            startDate = startDate.toString(),
+            endDate = endDate.toString(),
+        ).map { tasks -> tasks.map(TaskEntity::toDomain) }
+    }
+
     override fun observeTask(id: TaskId): Flow<Task?> =
         taskDao.observeTask(id.value).map { task -> task?.toDomain() }
 

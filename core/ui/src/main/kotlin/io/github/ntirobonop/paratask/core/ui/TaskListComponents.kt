@@ -339,7 +339,8 @@ fun ParaTaskBottomNavigation(
     NavigationBar {
         TaskListDestination.entries.forEach { destination ->
             val enabled = destination == TaskListDestination.INBOX ||
-                destination == TaskListDestination.TODAY
+                destination == TaskListDestination.TODAY ||
+                destination == TaskListDestination.UPCOMING
             NavigationBarItem(
                 selected = selectedDestination == destination,
                 onClick = { onDestinationSelected(destination) },

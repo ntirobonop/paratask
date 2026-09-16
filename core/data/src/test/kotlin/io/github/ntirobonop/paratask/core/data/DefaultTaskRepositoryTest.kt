@@ -5,6 +5,7 @@ import io.github.ntirobonop.paratask.core.database.TaskEntity
 import io.github.ntirobonop.paratask.core.model.TaskId
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneOffset
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,13 +77,33 @@ class DefaultTaskRepositoryTest {
 
     @Test
     fun createTaskPersistsDateAndExposesItInToday() = runTest {
-        val date = java.time.LocalDate.parse("2026-09-15")
+        val date = LocalDate.parse("2026-09-15")
 
         repository.createTask(title = "Task", dueDate = date)
 
         assertEquals(date, repository.observeTask(taskId).first()?.dueDate)
         assertEquals(listOf(taskId), repository.observeToday(date).first().map { it.id })
         assertTrue(repository.observeToday(date.plusDays(1)).first().isEmpty())
+    }
+
+    @Test
+    fun dateRangeMapsInclusiveBoundaries() = runTest {
+        val monday = LocalDate.parse("2026-09-14")
+        repository.createTask(title = "Task", dueDate = monday)
+
+        assertEquals(
+            listOf(taskId),
+            repository.observeTasksInDateRange(monday, monday.plusDays(6)).first().map { it.id },
+        )
+    }
+
+    @Test
+    fun dateRangeRejectsReversedBoundaries() {
+        val monday = LocalDate.parse("2026-09-14")
+
+        assertThrows(IllegalArgumentException::class.java) {
+            repository.observeTasksInDateRange(monday, monday.minusDays(1))
+        }
     }
 }
 
@@ -99,6 +120,21 @@ private class FakeTaskDao : TaskDao {
         values
             .filter { it.dueDate == dueDate && it.deletedAt == null && !it.isCompleted }
             .sortedWith(compareBy(TaskEntity::sortOrder, TaskEntity::createdAt))
+    }
+
+    override fun observeTasksInDateRange(
+        startDate: String,
+        endDate: String,
+    ): Flow<List<TaskEntity>> = tasks.map { values ->
+        values
+            .filter { task ->
+                task.dueDate?.let { it >= startDate && it <= endDate } == true &&
+                    task.deletedAt == null &&
+                    !task.isCompleted
+            }
+            .sortedWith(
+                compareBy(TaskEntity::dueDate, TaskEntity::sortOrder, TaskEntity::createdAt),
+            )
     }
 
     override fun observeTask(id: String): Flow<TaskEntity?> =

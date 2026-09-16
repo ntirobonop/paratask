@@ -31,7 +31,7 @@ app
     └── core:model
 ```
 
-The v0.1 persistence slice, v0.2 Task Details slice, and v0.3 Dates + Today slice add:
+The v0.1 persistence slice through the v0.4 Upcoming slice add:
 
 ```text
 core:database → core:model
@@ -40,6 +40,7 @@ core:ui       → core:model
 feature:task  → core:model + core:data + core:ui
 feature:inbox → core:model + core:data + core:ui
 feature:today → core:model + core:data + core:ui
+feature:upcoming → core:model + core:data + core:ui
 ```
 
 Later features remain isolated under `feature:*`. Features do not depend directly on other feature modules; navigation and shared contracts are promoted to `core` only when a concrete second consumer appears.
@@ -98,12 +99,16 @@ The first database migration creates `tasks`:
 
 Room schema JSON is exported and committed from schema version 1 onward. Every schema change requires a migration and a migration test; destructive fallback is not allowed in production.
 
-## Repository API for v0.3
+## Repository API for v0.4
 
 ```kotlin
 interface TaskRepository {
     fun observeInbox(): Flow<List<Task>>
     fun observeToday(date: LocalDate): Flow<List<Task>>
+    fun observeTasksInDateRange(
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): Flow<List<Task>>
     fun observeTask(id: TaskId): Flow<Task?>
     suspend fun createTask(
         title: String,
@@ -116,19 +121,21 @@ interface TaskRepository {
 }
 ```
 
-This focused API is expanded into query objects when sorting, grouping, and filters arrive. A speculative query engine is intentionally not part of v0.3.
+This focused API is expanded into query objects when sorting, grouping, and filters arrive. A speculative query engine is intentionally not part of v0.4. Upcoming observes one inclusive week range and derives per-day lists and indicators in UI state.
 
-## Navigation through v0.3
+## Navigation through v0.4
 
-The application currently has the Inbox and Today top-level destinations plus `TaskDetails(TaskId)`. The app layer owns this small destination state and the snackbar that must survive the transition from a deleted task back to the selected task list. Feature modules remain independent and communicate through callbacks.
+The application currently has Inbox, Today, and Upcoming top-level destinations plus `TaskDetails(TaskId)`. The app layer owns this small destination state and the snackbar that must survive the transition from a deleted task back to the selected task list. Feature modules remain independent and communicate through callbacks.
 
-A larger navigation framework remains deferred until Upcoming, Browse, or deep links require a real back stack. The current state-based navigation keeps this increment small while preserving the feature boundary.
+A larger navigation framework remains deferred until Browse, deep links, or nested project destinations require a real back stack. The current state-based navigation keeps this increment small while preserving the feature boundary.
 
 ## Shared task-list UI in v0.3
 
 Inbox and Today are concrete consumers of the same task row, empty/loading container, bottom navigation, date control, and composer. These components live in `core:ui`; screen-specific state, events, copy, and contextual defaults stay inside their feature modules. This prevents duplicated behavior without making one feature depend on another.
 
 Task dates use `LocalDate` throughout the domain and repository. Room keeps the existing nullable ISO-8601 `due_date` column, so schema version 1 remains valid and v0.3 needs no migration. The current calendar date is injected at the Today boundary for deterministic tests.
+
+Upcoming uses ISO Monday-to-Sunday weeks. Its selected date is transient ViewModel state, while a single Room range observation supplies the visible week's tasks. This avoids seven parallel database flows and keeps task indicators reactive. The current local date is injected at the feature boundary for deterministic week navigation tests.
 
 ## Testing strategy
 

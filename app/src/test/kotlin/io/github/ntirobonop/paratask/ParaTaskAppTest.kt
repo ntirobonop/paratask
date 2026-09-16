@@ -88,6 +88,31 @@ class ParaTaskAppTest {
 
         composeRule.onNodeWithText("Купить продукты").assertIsDisplayed()
     }
+
+    @Test
+    fun `Upcoming navigation shows current week and tasks due today`() {
+        val today = LocalDate.parse("2026-09-16")
+        val repository = FakeAppTaskRepository(task().copy(dueDate = today))
+        composeRule.setContent {
+            MaterialTheme {
+                ParaTaskApp(taskRepository = repository, today = today)
+            }
+        }
+
+        composeRule.onNodeWithText("Предстоящие").performClick()
+
+        composeRule.onNodeWithContentDescription(
+            "среда, 16 сентября, задач: 1, выбрано",
+        ).assertIsDisplayed()
+        composeRule.onNodeWithText("Купить продукты").assertIsDisplayed()
+
+        composeRule.onNodeWithText("Купить продукты").performClick()
+        composeRule.onNodeWithContentDescription("Назад").performClick()
+
+        composeRule.onNodeWithContentDescription(
+            "среда, 16 сентября, задач: 1, выбрано",
+        ).assertIsDisplayed()
+    }
 }
 
 private class FakeAppTaskRepository(initialTask: Task) : TaskRepository {
@@ -102,6 +127,17 @@ private class FakeAppTaskRepository(initialTask: Task) : TaskRepository {
     override fun observeToday(date: LocalDate): Flow<List<Task>> = tasks.map { values ->
         values.values.filter { task ->
             task.dueDate == date && task.deletedAt == null && !task.isCompleted
+        }
+    }
+
+    override fun observeTasksInDateRange(
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): Flow<List<Task>> = tasks.map { values ->
+        values.values.filter { task ->
+            task.dueDate?.let { it in startDate..endDate } == true &&
+                task.deletedAt == null &&
+                !task.isCompleted
         }
     }
 

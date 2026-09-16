@@ -1,30 +1,14 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.compose.compiler)
 }
 
 android {
-    namespace = "io.github.ntirobonop.paratask"
+    namespace = "io.github.ntirobonop.paratask.feature.upcoming"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "io.github.ntirobonop.paratask"
         minSdk = 23
-        targetSdk = 36
-        versionCode = 4
-        versionName = "0.4.0-dev"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
-        }
     }
 
     compileOptions {
@@ -44,20 +28,17 @@ android {
 
 dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
-
-    implementation(project(":core:designsystem"))
     implementation(project(":core:data"))
-    implementation(project(":core:database"))
-    implementation(project(":feature:inbox"))
-    implementation(project(":feature:task"))
-    implementation(project(":feature:today"))
-    implementation(project(":feature:upcoming"))
+    implementation(project(":core:model"))
+    implementation(project(":core:ui"))
 
-    implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.kotlinx.coroutines.core)
 
     testImplementation(libs.junit4)
     testImplementation(platform(libs.androidx.compose.bom))

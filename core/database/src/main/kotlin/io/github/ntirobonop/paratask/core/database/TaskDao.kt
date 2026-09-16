@@ -31,6 +31,20 @@ interface TaskDao {
     )
     fun observeToday(dueDate: String): Flow<List<TaskEntity>>
 
+    @Query(
+        """
+        SELECT * FROM tasks
+        WHERE due_date BETWEEN :startDate AND :endDate
+          AND deleted_at IS NULL
+          AND is_completed = 0
+        ORDER BY due_date ASC, sort_order ASC, created_at ASC
+        """,
+    )
+    fun observeTasksInDateRange(
+        startDate: String,
+        endDate: String,
+    ): Flow<List<TaskEntity>>
+
     @Query("SELECT * FROM tasks WHERE id = :id LIMIT 1")
     fun observeTask(id: String): Flow<TaskEntity?>
 

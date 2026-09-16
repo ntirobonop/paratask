@@ -91,6 +91,13 @@ private class FakeTaskRepository(
         tasks.filter { it.dueDate == date }
     }
 
+    override fun observeTasksInDateRange(
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): Flow<List<Task>> = inbox.map { tasks ->
+        tasks.filter { task -> task.dueDate?.let { it in startDate..endDate } == true }
+    }
+
     override fun observeTask(id: TaskId): Flow<Task?> =
         inbox.map { tasks -> tasks.firstOrNull { task -> task.id == id } }
 

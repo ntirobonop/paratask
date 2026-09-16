@@ -42,6 +42,7 @@ class TodayScreenTest {
                     onCompleteTask = {},
                     onOpenTask = {},
                     onNavigateToInbox = {},
+                    onNavigateToUpcoming = {},
                 )
             }
         }
@@ -68,6 +69,7 @@ class TodayScreenTest {
                     onCompleteTask = {},
                     onOpenTask = {},
                     onNavigateToInbox = {},
+                    onNavigateToUpcoming = {},
                 )
             }
         }
@@ -97,6 +99,7 @@ class TodayScreenTest {
                     onCompleteTask = {},
                     onOpenTask = {},
                     onNavigateToInbox = { inboxSelected = true },
+                    onNavigateToUpcoming = {},
                 )
             }
         }

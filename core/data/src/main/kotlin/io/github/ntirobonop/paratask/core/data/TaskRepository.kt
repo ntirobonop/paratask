@@ -10,6 +10,11 @@ interface TaskRepository {
 
     fun observeToday(date: LocalDate): Flow<List<Task>>
 
+    fun observeTasksInDateRange(
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): Flow<List<Task>>
+
     fun observeTask(id: TaskId): Flow<Task?>
 
     suspend fun createTask(
