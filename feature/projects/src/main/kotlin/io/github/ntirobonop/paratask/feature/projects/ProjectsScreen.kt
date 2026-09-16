@@ -362,6 +362,7 @@ private fun ProjectEditorSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProjectRoute(
     projectId: ProjectId,
