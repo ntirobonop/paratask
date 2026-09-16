@@ -73,6 +73,7 @@ class AppDatabaseMigrationTest {
     fun migration2To3PreservesTasksAndAddsSections() = runTest {
         context.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null).use { database ->
             database.execSQL(CREATE_V2_PROJECTS)
+            database.execSQL(CREATE_V2_PROJECT_INDEX)
             database.execSQL(CREATE_V2_TASKS)
             database.execSQL(
                 """
@@ -141,6 +142,11 @@ class AppDatabaseMigrationTest {
                 sort_order INTEGER NOT NULL,
                 PRIMARY KEY(id)
             )
+        """.trimIndent()
+
+        val CREATE_V2_PROJECT_INDEX = """
+            CREATE INDEX IF NOT EXISTS index_projects_is_archived_deleted_at_sort_order
+            ON projects (is_archived, deleted_at, sort_order)
         """.trimIndent()
 
         val CREATE_V2_TASKS = """
