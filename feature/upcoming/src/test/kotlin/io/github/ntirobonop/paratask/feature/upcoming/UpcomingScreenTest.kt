@@ -13,6 +13,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.ntirobonop.paratask.core.model.Task
@@ -140,7 +141,7 @@ class UpcomingScreenTest {
 
         composeRule.onNodeWithContentDescription("Добавить задачу").performClick()
         composeRule.onAllNodes(hasSetTextAction())[0].performTextInput("Купить продукты")
-        composeRule.onNodeWithText("Создать").performClick()
+        composeRule.onNodeWithText("Создать").performScrollTo().performClick()
 
         composeRule.runOnIdle { assertEquals(TODAY, createdDraft?.dueDate) }
     }

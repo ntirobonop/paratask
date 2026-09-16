@@ -12,6 +12,7 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -86,7 +87,7 @@ class InboxScreenTest {
             .performTextInput("Купить продукты")
         composeRule.onAllNodes(hasSetTextAction())[1]
             .performTextInput("Молоко")
-        composeRule.onNodeWithText("Создать").performClick()
+        composeRule.onNodeWithText("Создать").performScrollTo().performClick()
 
         composeRule.runOnIdle {
             assertEquals(
