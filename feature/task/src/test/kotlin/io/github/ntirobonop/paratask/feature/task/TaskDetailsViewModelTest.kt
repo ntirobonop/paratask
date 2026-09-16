@@ -178,6 +178,18 @@ private class FakeTaskRepository(initialTask: Task? = null) : TaskRepository {
         values.values.filter { it.dueDate == date && it.deletedAt == null && !it.isCompleted }
     }
 
+    override fun observeTasksInDateRange(
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): Flow<List<Task>> = tasks.map { values ->
+        values.values.filter { task ->
+            task.dueDate != null &&
+                task.dueDate in startDate..endDate &&
+                task.deletedAt == null &&
+                !task.isCompleted
+        }
+    }
+
     override fun observeTask(id: TaskId): Flow<Task?> = tasks.map { it[id] }
 
     override suspend fun createTask(

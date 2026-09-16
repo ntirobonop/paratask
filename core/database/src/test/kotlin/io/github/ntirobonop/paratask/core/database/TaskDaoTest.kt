@@ -123,6 +123,30 @@ class TaskDaoTest {
 
         assertEquals(listOf("today"), today.map(TaskEntity::id))
     }
+
+    @Test
+    fun `date range is inclusive and contains only active tasks`() = runTest {
+        dao.insertTask(task(id = "before", dueDate = "2026-09-13"))
+        dao.insertTask(task(id = "monday", dueDate = "2026-09-14"))
+        dao.insertTask(task(id = "sunday", dueDate = "2026-09-20"))
+        dao.insertTask(task(id = "after", dueDate = "2026-09-21"))
+        dao.insertTask(
+            task(
+                id = "completed",
+                dueDate = "2026-09-16",
+                isCompleted = true,
+                completedAt = 20,
+            ),
+        )
+        dao.insertTask(task(id = "deleted", dueDate = "2026-09-17", deletedAt = 20))
+
+        val week = dao.observeTasksInDateRange(
+            startDate = "2026-09-14",
+            endDate = "2026-09-20",
+        ).first()
+
+        assertEquals(listOf("monday", "sunday"), week.map(TaskEntity::id))
+    }
 }
 
 private fun task(
