@@ -26,6 +26,7 @@ class SectionDaoTest {
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+            .addCallback(SECTION_INTEGRITY_CALLBACK)
             .allowMainThreadQueries()
             .build()
         projectDao = database.projectDao()
@@ -64,6 +65,31 @@ class SectionDaoTest {
         assertEquals("project", taskDao.getTask("task")?.projectId)
         assertEquals("task", taskDao.getTask("task")?.id)
         assertEquals(emptyList<SectionEntity>(), sectionDao.observeSections("project").first())
+    }
+
+    @Test
+    fun freshDatabaseEnforcesSectionIntegrityWithoutRepository() = runTest {
+        assertSectionIntegrity(database)
+    }
+
+    @Test
+    fun sectionDeletionAlsoClearsCompletedAndDeletedTasks() = runTest {
+        projectDao.insertProject(project("project"))
+        sectionDao.insertSection(section("section", "project", 0))
+        taskDao.insertTask(task("completed", "project", "section").copy(
+            isCompleted = true,
+            completedAt = 20,
+        ))
+        taskDao.insertTask(task("deleted", "project", "section").copy(deletedAt = 30))
+
+        sectionDao.deleteSectionAndClearTasks("section", 100)
+
+        assertNull(taskDao.getTask("completed")?.sectionId)
+        assertNull(taskDao.getTask("deleted")?.sectionId)
+        assertEquals(20L, taskDao.getTask("completed")?.completedAt)
+        assertEquals(30L, taskDao.getTask("deleted")?.deletedAt)
+        assertEquals("project", taskDao.getTask("completed")?.projectId)
+        assertEquals("project", taskDao.getTask("deleted")?.projectId)
     }
 }
 

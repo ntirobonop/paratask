@@ -100,6 +100,7 @@ class TaskDetailsViewModel(
     }
 
     fun updateProject(projectId: ProjectId?) {
+        if (_uiState.value.projectId == projectId) return
         editRevision += 1
         _uiState.value = _uiState.value.copy(
             projectId = projectId,

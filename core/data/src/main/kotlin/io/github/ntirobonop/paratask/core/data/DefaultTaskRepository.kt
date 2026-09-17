@@ -113,7 +113,11 @@ class DefaultTaskRepository(
             val section = sectionDao?.getSection(normalizedSectionId.value)
             if (section?.projectId != task.projectId?.value) normalizedSectionId = null
         }
-        validateAssignment(projectId = task.projectId, sectionId = normalizedSectionId)
+        validateAssignment(
+            projectId = task.projectId,
+            sectionId = normalizedSectionId,
+            requireActiveProject = projectChanged,
+        )
         taskDao.updateTask(
             task.copy(
                 title = task.title.trim(),
@@ -149,11 +153,15 @@ class DefaultTaskRepository(
         )
     }
 
-    private suspend fun validateAssignment(projectId: ProjectId?, sectionId: SectionId?) {
+    private suspend fun validateAssignment(
+        projectId: ProjectId?,
+        sectionId: SectionId?,
+        requireActiveProject: Boolean = true,
+    ) {
         require(projectId != null || sectionId == null) { "Inbox tasks cannot have a section" }
         if (projectId == null) return
         val project = projectDao?.getProject(projectId.value)
-        require(project != null && !project.isArchived) {
+        require(project != null && (!requireActiveProject || !project.isArchived)) {
             "Tasks can only be assigned to an active project"
         }
         if (sectionId != null) {

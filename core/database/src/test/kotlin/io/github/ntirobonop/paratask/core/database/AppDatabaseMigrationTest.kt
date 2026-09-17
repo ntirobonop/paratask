@@ -30,7 +30,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration1To2PreservesTasksAndAddsProjectForeignKey() = runTest {
+    fun migration1To3PreservesTasksAndEnforcesRelationships() = runTest {
         context.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null).use { database ->
             database.execSQL(CREATE_V1_TASKS)
             database.execSQL(
@@ -66,6 +66,7 @@ class AppDatabaseMigrationTest {
             }
         assertTrue(foreignKeys.contains("projects"))
         assertTrue(foreignKeys.contains("sections"))
+        assertSectionIntegrity(migrated)
         migrated.close()
     }
 
@@ -104,6 +105,9 @@ class AppDatabaseMigrationTest {
         assertEquals("project", task?.projectId)
         assertNull(task?.sectionId)
         assertEquals(emptyList<SectionEntity>(), migrated.sectionDao().observeSections("project").first())
+        assertEquals("Сохранённая задача", task?.title)
+        assertEquals("Проект", migrated.projectDao().getProject("project")?.name)
+        assertSectionIntegrity(migrated)
         migrated.close()
     }
 

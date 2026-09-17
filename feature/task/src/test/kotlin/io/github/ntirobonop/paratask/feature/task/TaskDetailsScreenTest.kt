@@ -11,9 +11,14 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.github.ntirobonop.paratask.core.model.ProjectId
+import io.github.ntirobonop.paratask.core.model.Section
+import io.github.ntirobonop.paratask.core.model.SectionId
 import io.github.ntirobonop.paratask.core.model.TaskId
+import java.time.Instant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -127,6 +132,28 @@ class TaskDetailsScreenTest {
 
         composeRule.onNodeWithText("Задача не найдена").assertIsDisplayed()
         composeRule.onNodeWithText("Вернуться во Входящие").assertIsDisplayed()
+    }
+
+    @Test
+    fun `section selector forwards task detail edits`() {
+        val projectId = ProjectId("project")
+        val section = Section(SectionId("section"), projectId, "В работе", Instant.EPOCH, Instant.EPOCH)
+        var chosen: SectionId? = null
+        composeRule.setContent {
+            MaterialTheme {
+                TaskDetailsScreen(
+                    uiState = readyState().copy(projectId = projectId),
+                    snackbarHostState = SnackbarHostState(),
+                    onTitleChange = {}, onDescriptionChange = {}, onCompletedChange = {},
+                    onBack = {}, onDelete = {},
+                    onSectionChange = { chosen = it },
+                    sections = listOf(section),
+                )
+            }
+        }
+        composeRule.onNodeWithContentDescription("Выбрать секцию").performScrollTo().performClick()
+        composeRule.onNodeWithText(section.name).performClick()
+        composeRule.runOnIdle { assertEquals(section.id, chosen) }
     }
 
     private fun readyState() = TaskDetailsUiState(

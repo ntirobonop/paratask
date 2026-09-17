@@ -122,6 +122,21 @@ class TaskDetailsViewModelTest {
         }
 
     @Test
+    fun `reselecting current project preserves section without autosave`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val repository = FakeTaskRepository(task().copy(projectId = PROJECT_ID, sectionId = SECTION_ID))
+            val viewModel = TaskDetailsViewModel(repository, TASK_ID)
+            advanceUntilIdle()
+
+            viewModel.updateProject(PROJECT_ID)
+            advanceUntilIdle()
+
+            assertEquals(SECTION_ID, viewModel.uiState.value.sectionId)
+            assertFalse(viewModel.uiState.value.hasPendingChanges)
+            assertTrue(repository.updatedTasks.isEmpty())
+        }
+
+    @Test
     fun `blank title does not replace persisted task`() = runTest(mainDispatcherRule.testDispatcher) {
         val repository = FakeTaskRepository(task())
         val viewModel = TaskDetailsViewModel(repository, TASK_ID, autosaveDelayMillis = 500)

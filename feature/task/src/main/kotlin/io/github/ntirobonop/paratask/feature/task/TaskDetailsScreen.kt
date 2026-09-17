@@ -58,7 +58,7 @@ fun TaskDetailsRoute(
     snackbarHostState: SnackbarHostState,
     onClose: () -> Unit,
     onDeleted: (TaskId) -> Unit,
-    activeProjects: List<Project> = emptyList(),
+    projects: List<Project> = emptyList(),
     sections: List<Section> = emptyList(),
     modifier: Modifier = Modifier,
     viewModel: TaskDetailsViewModel = viewModel(
@@ -91,7 +91,7 @@ fun TaskDetailsRoute(
         onCompletedChange = viewModel::setCompleted,
         onBack = viewModel::navigateBack,
         onDelete = viewModel::deleteTask,
-        activeProjects = activeProjects,
+        projects = projects,
         sections = sections,
         modifier = modifier,
     )
@@ -110,7 +110,7 @@ fun TaskDetailsScreen(
     onDateChange: (LocalDate?) -> Unit = {},
     onProjectChange: (ProjectId?) -> Unit = {},
     onSectionChange: (SectionId?) -> Unit = {},
-    activeProjects: List<Project> = emptyList(),
+    projects: List<Project> = emptyList(),
     sections: List<Section> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
@@ -184,7 +184,7 @@ fun TaskDetailsScreen(
                 onDateChange = onDateChange,
                 onProjectChange = onProjectChange,
                 onSectionChange = onSectionChange,
-                activeProjects = activeProjects,
+                projects = projects,
                 sections = sections,
                 onCompletedChange = onCompletedChange,
                 modifier = Modifier
@@ -203,7 +203,7 @@ private fun TaskEditor(
     onDateChange: (LocalDate?) -> Unit,
     onProjectChange: (ProjectId?) -> Unit,
     onSectionChange: (SectionId?) -> Unit,
-    activeProjects: List<Project>,
+    projects: List<Project>,
     sections: List<Section>,
     onCompletedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
@@ -257,7 +257,7 @@ private fun TaskEditor(
         )
         TaskProjectField(
             projectId = uiState.projectId,
-            projects = activeProjects,
+            projects = projects,
             onProjectChange = onProjectChange,
         )
         TaskSectionField(

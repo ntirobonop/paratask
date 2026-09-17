@@ -129,7 +129,7 @@ interface TaskRepository {
 }
 ```
 
-`ProjectRepository` owns project creation, editing, archive/restore, soft deletion, and manual reordering. Project deletion clears task and future section assignments in the same Room transaction, so tasks return to Inbox instead of being deleted. Task assignment accepts only active projects.
+`ProjectRepository` owns project creation, editing, archive/restore, soft deletion, and manual reordering. Project deletion clears task assignments and soft-deletes its sections in the same Room transaction, so tasks return to Inbox instead of being deleted. New project assignment accepts only active projects; editing an existing task in an archived project preserves its assignment.
 
 `SectionRepository` observes sections globally or per project and owns creation, renaming, and deletion. Section deletion clears only task section assignments in one Room transaction. Repository validation mirrors the database invariant: Inbox tasks cannot have sections, and every assigned section must be active and belong to the task project. Changing a task project clears an incompatible section automatically.
 
@@ -149,7 +149,7 @@ Task dates use `LocalDate` throughout the domain and repository. Room keeps the 
 
 Upcoming uses ISO Monday-to-Sunday weeks. Its selected date is transient ViewModel state, while a single Room range observation supplies the visible week's tasks. This avoids seven parallel database flows and keeps task indicators reactive. The current local date is injected at the feature boundary for deterministic week navigation tests.
 
-Projects use `ProjectId` and `ProjectIcon` domain types. Browse exposes active and archived projects separately; only active projects appear in Task Composer and Task Details selectors. A nullable `Task.projectId` continues to represent Inbox, so assignment changes use the same task model in every feature.
+Projects use `ProjectId` and `ProjectIcon` domain types. Browse exposes active and archived projects separately; only active projects can be selected in Task Composer and Task Details. Details still resolves the current archived project's name without presenting it as a new assignment choice. A nullable `Task.projectId` continues to represent Inbox, so assignment changes use the same task model in every feature.
 
 Sections use `SectionId` and stay within their owning project. The project screen groups unsectioned tasks first and then stable section groups. Task Composer and Task Details derive available sections from the selected project, while Today and Upcoming use a shared marker that combines a project's color, icon, name, and accessibility semantics.
 

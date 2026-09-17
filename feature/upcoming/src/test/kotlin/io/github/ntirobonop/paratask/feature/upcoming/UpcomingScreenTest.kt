@@ -16,6 +16,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.github.ntirobonop.paratask.core.model.Project
+import io.github.ntirobonop.paratask.core.model.ProjectIcon
+import io.github.ntirobonop.paratask.core.model.ProjectId
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.core.ui.TaskDraft
@@ -144,6 +147,28 @@ class UpcomingScreenTest {
         composeRule.onNodeWithText("Создать").performScrollTo().performClick()
 
         composeRule.runOnIdle { assertEquals(TODAY, createdDraft?.dueDate) }
+    }
+
+    @Test
+    fun `calendar rows show project identity without redundant dates`() {
+        val project = Project(
+            id = ProjectId("project"), name = "Дом", color = 0xFF006A6A,
+            icon = ProjectIcon.HOME, createdAt = NOW, updatedAt = NOW,
+        )
+        val state = readyState().let { it.copy(weekTasks = it.weekTasks.map { task -> task.copy(projectId = project.id) }) }
+        composeRule.setContent {
+            MaterialTheme {
+                UpcomingScreen(
+                    uiState = state, snackbarHostState = SnackbarHostState(), showQuickAdd = false,
+                    onAddTask = {}, onDismissQuickAdd = {}, onCreateTask = {},
+                    onSelectDate = {}, onPreviousWeek = {}, onNextWeek = {}, onToday = {},
+                    onCompleteTask = {}, onOpenTask = {}, onNavigateToInbox = {}, onNavigateToToday = {},
+                    taskProjects = listOf(project),
+                )
+            }
+        }
+        composeRule.onNodeWithContentDescription("Проект Дом", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithText("16 сентября 2026").assertDoesNotExist()
     }
 
     private fun readyState() = UpcomingUiState(

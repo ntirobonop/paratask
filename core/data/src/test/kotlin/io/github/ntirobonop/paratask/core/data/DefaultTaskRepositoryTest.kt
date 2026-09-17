@@ -182,6 +182,64 @@ class DefaultTaskRepositoryTest {
         assertNull(updated?.sectionId)
     }
 
+    @Test
+    fun editingArchivedTaskPreservesItsExistingProjectAndSection() = runTest {
+        val projectId = ProjectId("project")
+        val sectionId = SectionId("section")
+        val projects = mutableListOf(project(projectId.value))
+        val repository = assignmentRepository(projects, listOf(section(sectionId.value, projectId.value)))
+        repository.createTask("Task", "", null, projectId, sectionId)
+        projects[0] = projects[0].copy(isArchived = true)
+
+        val task = requireNotNull(repository.observeTask(taskId).first())
+        repository.updateTask(task.copy(title = "Edited archived task"))
+
+        val updated = requireNotNull(repository.observeTask(taskId).first())
+        assertEquals("Edited archived task", updated.title)
+        assertEquals(projectId, updated.projectId)
+        assertEquals(sectionId, updated.sectionId)
+    }
+
+    @Test
+    fun assigningNewOrExistingTasksToArchivedProjectIsRejected() = runTest {
+        val projectId = ProjectId("archived")
+        val repository = assignmentRepository(
+            listOf(project(projectId.value).copy(isArchived = true)),
+            emptyList(),
+        )
+        val createError = runCatching {
+            repository.createTask("Task", "", null, projectId, null)
+        }.exceptionOrNull()
+        assertTrue(createError is IllegalArgumentException)
+
+        repository.createTask("Inbox task", "", null)
+        val task = requireNotNull(repository.observeTask(taskId).first())
+        val updateError = runCatching {
+            repository.updateTask(task.copy(projectId = projectId))
+        }.exceptionOrNull()
+        assertTrue(updateError is IllegalArgumentException)
+        assertNull(repository.observeTask(taskId).first()?.projectId)
+    }
+
+    @Test
+    fun movingTaskToInboxClearsSectionAndRejectsNewInboxSection() = runTest {
+        val projectId = ProjectId("project")
+        val sectionId = SectionId("section")
+        val repository = assignmentRepository(
+            listOf(project(projectId.value)),
+            listOf(section(sectionId.value, projectId.value)),
+        )
+        repository.createTask("Task", "", null, projectId, sectionId)
+        val task = requireNotNull(repository.observeTask(taskId).first())
+
+        repository.updateTask(task.copy(projectId = null))
+
+        assertNull(repository.observeTask(taskId).first()?.sectionId)
+        val error = runCatching { repository.createTask("Invalid", "", null, null, sectionId) }
+            .exceptionOrNull()
+        assertTrue(error is IllegalArgumentException)
+    }
+
     private fun assignmentRepository(
         projects: List<ProjectEntity>,
         sections: List<SectionEntity>,
@@ -315,6 +373,9 @@ private class AssignmentProjectDao(
         error("Not used")
 
     override suspend fun softDeleteProject(projectId: String, deletedAt: Long): Int =
+        error("Not used")
+
+    override suspend fun softDeleteProjectSections(projectId: String, deletedAt: Long) =
         error("Not used")
 }
 

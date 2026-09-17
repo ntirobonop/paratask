@@ -15,7 +15,13 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.github.ntirobonop.paratask.core.model.Project
+import io.github.ntirobonop.paratask.core.model.ProjectIcon
+import io.github.ntirobonop.paratask.core.model.ProjectId
+import io.github.ntirobonop.paratask.core.model.Task
+import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.core.ui.TaskDraft
+import java.time.Instant
 import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -107,6 +113,32 @@ class TodayScreenTest {
 
         composeRule.onNodeWithText("Входящие").performClick()
         composeRule.runOnIdle { assertEquals(true, inboxSelected) }
+    }
+
+    @Test
+    fun `task rows identify even archived projects outside a project screen`() {
+        val project = Project(
+            id = ProjectId("archived"), name = "Учёба", color = 0xFF6750A4,
+            icon = ProjectIcon.SCHOOL, isArchived = true,
+            createdAt = Instant.EPOCH, updatedAt = Instant.EPOCH,
+        )
+        val task = Task(TaskId("project-task"), "Сдать работу", dueDate = TODAY,
+            projectId = project.id, createdAt = Instant.EPOCH, updatedAt = Instant.EPOCH)
+        composeRule.setContent {
+            MaterialTheme {
+                TodayScreen(
+                    uiState = TodayUiState(date = TODAY, tasks = listOf(task), isLoading = false),
+                    snackbarHostState = SnackbarHostState(),
+                    showQuickAdd = false,
+                    onAddTask = {}, onDismissQuickAdd = {}, onCreateTask = {},
+                    onCompleteTask = {}, onOpenTask = {},
+                    onNavigateToInbox = {}, onNavigateToUpcoming = {},
+                    activeProjects = emptyList(),
+                    taskProjects = listOf(project),
+                )
+            }
+        }
+        composeRule.onNodeWithContentDescription("Проект Учёба", useUnmergedTree = true).assertIsDisplayed()
     }
 
     private companion object {

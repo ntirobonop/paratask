@@ -72,6 +72,7 @@ class DefaultProjectRepositoryTest {
 
         assertTrue(repository.observeActiveProjects().first().isEmpty())
         assertEquals(listOf(projectId.value), dao.clearedAssignments)
+        assertEquals(listOf(projectId.value), dao.deletedProjectSections)
         assertEquals(instant.toEpochMilli(), dao.allProjects().single().deletedAt)
     }
 
@@ -100,6 +101,7 @@ class DefaultProjectRepositoryTest {
 private class FakeProjectDao : ProjectDao {
     private val projects = MutableStateFlow<List<ProjectEntity>>(emptyList())
     val clearedAssignments = mutableListOf<String>()
+    val deletedProjectSections = mutableListOf<String>()
 
     override fun observeActiveProjects(): Flow<List<ProjectEntity>> = projects.map(::active)
 
@@ -138,6 +140,10 @@ private class FakeProjectDao : ProjectDao {
 
     override suspend fun softDeleteProject(projectId: String, deletedAt: Long): Int =
         replace(projectId) { it.copy(deletedAt = deletedAt, updatedAt = deletedAt) }
+
+    override suspend fun softDeleteProjectSections(projectId: String, deletedAt: Long) {
+        deletedProjectSections += projectId
+    }
 
     fun allProjects(): List<ProjectEntity> = projects.value
 

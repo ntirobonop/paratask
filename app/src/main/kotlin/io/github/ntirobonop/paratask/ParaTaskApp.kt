@@ -73,7 +73,7 @@ fun ParaTaskApp(
                     }
                 }
             },
-            activeProjects = activeProjects,
+            projects = taskProjects,
             sections = sections,
         )
 

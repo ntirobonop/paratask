@@ -355,7 +355,9 @@ fun TaskSectionField(
     modifier: Modifier = Modifier,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    val availableSections = sections.filter { section -> section.projectId == projectId }
+    val availableSections = sections.filter { section ->
+        section.projectId == projectId && section.deletedAt == null
+    }
     val selectedName = availableSections.firstOrNull { section -> section.id == sectionId }?.name
         ?: "Без секции"
     val enabled = projectId != null
@@ -440,7 +442,7 @@ fun TaskProjectField(
                     expanded = false
                 },
             )
-            projects.forEach { project ->
+            projects.filter { !it.isArchived && it.deletedAt == null }.forEach { project ->
                 DropdownMenuItem(
                     text = { Text(project.name) },
                     onClick = {

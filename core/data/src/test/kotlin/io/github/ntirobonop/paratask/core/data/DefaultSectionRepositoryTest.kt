@@ -166,6 +166,9 @@ private class SectionTestProjectDao(initialProject: ProjectEntity) : ProjectDao 
 
     override suspend fun softDeleteProject(projectId: String, deletedAt: Long): Int =
         error("Not used")
+
+    override suspend fun softDeleteProjectSections(projectId: String, deletedAt: Long) =
+        error("Not used")
 }
 
 private fun project(id: String) = ProjectEntity(

@@ -601,9 +601,24 @@ private fun SectionHeader(
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.weight(1f),
         )
-        TextButton(onClick = onAddTask) { Text("+") }
-        TextButton(onClick = onEdit) { Text("Изм.") }
-        TextButton(onClick = onDelete) { Text("Удалить") }
+        TextButton(
+            onClick = onAddTask,
+            modifier = Modifier.semantics {
+                contentDescription = "Добавить задачу в секцию ${section.name}"
+            },
+        ) { Text("+") }
+        TextButton(
+            onClick = onEdit,
+            modifier = Modifier.semantics {
+                contentDescription = "Переименовать секцию ${section.name}"
+            },
+        ) { Text("Изм.") }
+        TextButton(
+            onClick = onDelete,
+            modifier = Modifier.semantics {
+                contentDescription = "Удалить секцию ${section.name}"
+            },
+        ) { Text("Удалить") }
     }
 }
 

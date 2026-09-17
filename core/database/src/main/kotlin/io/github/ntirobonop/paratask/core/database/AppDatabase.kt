@@ -29,7 +29,7 @@ fun createAppDatabase(context: Context): AppDatabase =
         .addCallback(SECTION_INTEGRITY_CALLBACK)
         .build()
 
-private val SECTION_INTEGRITY_CALLBACK = object : RoomDatabase.Callback() {
+internal val SECTION_INTEGRITY_CALLBACK = object : RoomDatabase.Callback() {
     override fun onCreate(db: SupportSQLiteDatabase) {
         createSectionIntegrityTriggers(db)
     }
