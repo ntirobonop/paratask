@@ -24,6 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.Project
+import io.github.ntirobonop.paratask.core.model.Section
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.core.ui.ParaTaskBottomNavigation
@@ -42,6 +43,7 @@ fun InboxRoute(
     onNavigateToUpcoming: () -> Unit,
     onNavigateToBrowse: () -> Unit = {},
     activeProjects: List<Project> = emptyList(),
+    sections: List<Section> = emptyList(),
     modifier: Modifier = Modifier,
     viewModel: InboxViewModel = viewModel(factory = InboxViewModel.factory(taskRepository)),
 ) {
@@ -79,6 +81,7 @@ fun InboxRoute(
                 description = draft.description,
                 dueDate = draft.dueDate,
                 projectId = draft.projectId,
+                sectionId = draft.sectionId,
             )
             showQuickAdd = false
         },
@@ -88,6 +91,7 @@ fun InboxRoute(
         onNavigateToUpcoming = onNavigateToUpcoming,
         onNavigateToBrowse = onNavigateToBrowse,
         activeProjects = activeProjects,
+        sections = sections,
         modifier = modifier,
     )
 }
@@ -107,6 +111,7 @@ fun InboxScreen(
     onNavigateToUpcoming: () -> Unit,
     onNavigateToBrowse: () -> Unit = {},
     activeProjects: List<Project> = emptyList(),
+    sections: List<Section> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -154,6 +159,7 @@ fun InboxScreen(
             onDismissRequest = onDismissQuickAdd,
             onCreateTask = onCreateTask,
             projects = activeProjects,
+            sections = sections,
         )
     }
 }

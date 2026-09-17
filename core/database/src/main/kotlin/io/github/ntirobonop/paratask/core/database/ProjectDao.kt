@@ -112,12 +112,24 @@ interface ProjectDao {
         deletedAt: Long,
     ): Int
 
+    @Query(
+        """
+        UPDATE sections
+        SET deleted_at = :deletedAt,
+            updated_at = :deletedAt
+        WHERE project_id = :projectId
+          AND deleted_at IS NULL
+        """,
+    )
+    suspend fun softDeleteProjectSections(projectId: String, deletedAt: Long)
+
     @Transaction
     suspend fun deleteProjectAndReturnTasksToInbox(
         projectId: String,
         deletedAt: Long,
     ): Int {
         clearTaskAssignments(projectId = projectId, updatedAt = deletedAt)
+        softDeleteProjectSections(projectId = projectId, deletedAt = deletedAt)
         return softDeleteProject(projectId = projectId, deletedAt = deletedAt)
     }
 

@@ -6,9 +6,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.ntirobonop.paratask.core.data.ProjectRepository
+import io.github.ntirobonop.paratask.core.data.SectionRepository
 import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.Project
 import io.github.ntirobonop.paratask.core.model.ProjectId
+import io.github.ntirobonop.paratask.core.model.Section
+import io.github.ntirobonop.paratask.core.model.SectionId
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import java.time.LocalDate
@@ -24,6 +27,7 @@ import kotlinx.coroutines.launch
 data class ProjectUiState(
     val project: Project? = null,
     val tasks: List<Task> = emptyList(),
+    val sections: List<Section> = emptyList(),
     val isLoading: Boolean = true,
 )
 
@@ -36,6 +40,7 @@ sealed interface ProjectUiEvent {
 class ProjectViewModel(
     private val taskRepository: TaskRepository,
     projectRepository: ProjectRepository,
+    private val sectionRepository: SectionRepository,
     private val projectId: ProjectId,
 ) : ViewModel() {
     private val eventChannel = Channel<ProjectUiEvent>(Channel.BUFFERED)
@@ -44,8 +49,14 @@ class ProjectViewModel(
     val uiState = combine(
         projectRepository.observeProject(projectId),
         taskRepository.observeProjectTasks(projectId),
-    ) { project, tasks ->
-        ProjectUiState(project = project, tasks = tasks, isLoading = false)
+        sectionRepository.observeSections(projectId),
+    ) { project, tasks, sections ->
+        ProjectUiState(
+            project = project,
+            tasks = tasks,
+            sections = sections,
+            isLoading = false,
+        )
     }.catch {
         eventChannel.send(ProjectUiEvent.ShowMessage("Не удалось загрузить проект"))
         emit(ProjectUiState(isLoading = false))
@@ -60,6 +71,7 @@ class ProjectViewModel(
         description: String,
         dueDate: LocalDate?,
         selectedProjectId: ProjectId?,
+        selectedSectionId: SectionId? = null,
     ) {
         if (title.isBlank()) return
         viewModelScope.launch {
@@ -69,10 +81,40 @@ class ProjectViewModel(
                     description = description,
                     dueDate = dueDate,
                     projectId = selectedProjectId,
+                    sectionId = selectedSectionId,
                 )
             }.onFailure {
                 eventChannel.send(ProjectUiEvent.ShowMessage("Не удалось создать задачу"))
             }
+        }
+    }
+
+    fun createSection(name: String) {
+        if (name.isBlank()) return
+        viewModelScope.launch {
+            runCatching { sectionRepository.createSection(projectId, name) }
+                .onFailure {
+                    eventChannel.send(ProjectUiEvent.ShowMessage("Не удалось создать секцию"))
+                }
+        }
+    }
+
+    fun renameSection(id: SectionId, name: String) {
+        if (name.isBlank()) return
+        viewModelScope.launch {
+            runCatching { sectionRepository.renameSection(id, name) }
+                .onFailure {
+                    eventChannel.send(ProjectUiEvent.ShowMessage("Не удалось переименовать секцию"))
+                }
+        }
+    }
+
+    fun deleteSection(id: SectionId) {
+        viewModelScope.launch {
+            runCatching { sectionRepository.deleteSection(id) }
+                .onFailure {
+                    eventChannel.send(ProjectUiEvent.ShowMessage("Не удалось удалить секцию"))
+                }
         }
     }
 
@@ -99,12 +141,14 @@ class ProjectViewModel(
         fun factory(
             taskRepository: TaskRepository,
             projectRepository: ProjectRepository,
+            sectionRepository: SectionRepository,
             projectId: ProjectId,
         ): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 ProjectViewModel(
                     taskRepository = taskRepository,
                     projectRepository = projectRepository,
+                    sectionRepository = sectionRepository,
                     projectId = projectId,
                 )
             }

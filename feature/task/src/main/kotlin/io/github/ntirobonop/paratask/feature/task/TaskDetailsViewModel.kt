@@ -9,6 +9,7 @@ import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.core.model.ProjectId
+import io.github.ntirobonop.paratask.core.model.SectionId
 import java.time.LocalDate
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -28,6 +29,7 @@ data class TaskDetailsUiState(
     val description: String = "",
     val dueDate: LocalDate? = null,
     val projectId: ProjectId? = null,
+    val sectionId: SectionId? = null,
     val isCompleted: Boolean = false,
     val hasPendingChanges: Boolean = false,
     val taskMissing: Boolean = false,
@@ -98,9 +100,20 @@ class TaskDetailsViewModel(
     }
 
     fun updateProject(projectId: ProjectId?) {
+        if (_uiState.value.projectId == projectId) return
         editRevision += 1
         _uiState.value = _uiState.value.copy(
             projectId = projectId,
+            sectionId = null,
+            hasPendingChanges = true,
+        )
+        scheduleAutosave()
+    }
+
+    fun updateSection(sectionId: SectionId?) {
+        editRevision += 1
+        _uiState.value = _uiState.value.copy(
+            sectionId = sectionId,
             hasPendingChanges = true,
         )
         scheduleAutosave()
@@ -160,6 +173,7 @@ class TaskDetailsViewModel(
             description = if (keepDraft) state.description else task.description,
             dueDate = if (keepDraft) state.dueDate else task.dueDate,
             projectId = if (keepDraft) state.projectId else task.projectId,
+            sectionId = if (keepDraft) state.sectionId else task.sectionId,
             isCompleted = task.isCompleted,
             taskMissing = false,
         )
@@ -188,6 +202,7 @@ class TaskDetailsViewModel(
                     description = state.description,
                     dueDate = state.dueDate,
                     projectId = state.projectId,
+                    sectionId = state.sectionId,
                 ),
             )
         }.onSuccess {
@@ -209,6 +224,7 @@ class TaskDetailsViewModel(
             description = task.description,
             dueDate = task.dueDate,
             projectId = task.projectId,
+            sectionId = task.sectionId,
             hasPendingChanges = false,
         )
     }

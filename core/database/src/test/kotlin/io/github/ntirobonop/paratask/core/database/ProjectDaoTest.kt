@@ -25,6 +25,7 @@ class ProjectDaoTest {
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+            .addCallback(SECTION_INTEGRITY_CALLBACK)
             .allowMainThreadQueries()
             .build()
         projectDao = database.projectDao()
@@ -67,6 +68,37 @@ class ProjectDaoTest {
         assertNull(taskDao.getTask("task")?.projectId)
         assertNull(taskDao.getTask("task")?.sectionId)
         assertNull(projectDao.observeProject("project").first())
+    }
+
+    @Test
+    fun deletingProjectRemovesItsSectionsAndPreservesEveryTaskState() = runTest {
+        val sections = database.sectionDao()
+        projectDao.insertProject(project("project", 0))
+        projectDao.insertProject(project("other", 1))
+        sections.insertSection(SectionEntity("section", "project", "Section", 10, 10, null, 0))
+        sections.insertSection(SectionEntity("other-section", "other", "Other", 10, 10, null, 0))
+        val active = task("active", "project").copy(sectionId = "section")
+        val completed = active.copy(id = "completed", isCompleted = true, completedAt = 20)
+        val deleted = active.copy(id = "deleted", deletedAt = 30)
+        listOf(active, completed, deleted).forEach { taskDao.insertTask(it) }
+
+        projectDao.deleteProjectAndReturnTasksToInbox("project", 100)
+
+        listOf(active, completed, deleted).forEach { original ->
+            assertEquals(
+                original.copy(projectId = null, sectionId = null, updatedAt = 100),
+                taskDao.getTask(original.id),
+            )
+        }
+        assertEquals(listOf("active"), taskDao.observeInbox().first().map(TaskEntity::id))
+        assertEquals(listOf("other-section"), sections.observeAllSections().first().map(SectionEntity::id))
+        assertNull(sections.getSection("section"))
+        database.openHelper.readableDatabase.query(
+            "SELECT deleted_at FROM sections WHERE id = 'section'",
+        ).use { cursor ->
+            check(cursor.moveToFirst())
+            assertEquals(100L, cursor.getLong(0))
+        }
     }
 }
 

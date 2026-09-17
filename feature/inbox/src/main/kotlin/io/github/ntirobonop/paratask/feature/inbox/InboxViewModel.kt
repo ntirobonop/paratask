@@ -9,6 +9,7 @@ import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.Task
 import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.core.model.ProjectId
+import io.github.ntirobonop.paratask.core.model.SectionId
 import java.time.LocalDate
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -53,6 +54,7 @@ class InboxViewModel(
         description: String,
         dueDate: LocalDate? = null,
         projectId: ProjectId? = null,
+        sectionId: SectionId? = null,
     ) {
         if (title.isBlank()) return
 
@@ -63,6 +65,7 @@ class InboxViewModel(
                     description = description,
                     dueDate = dueDate,
                     projectId = projectId,
+                    sectionId = sectionId,
                 )
             }.onFailure {
                 eventChannel.send(InboxUiEvent.ShowMessage("Не удалось создать задачу"))

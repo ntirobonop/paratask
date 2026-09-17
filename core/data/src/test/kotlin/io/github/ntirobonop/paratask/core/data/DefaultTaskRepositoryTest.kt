@@ -2,6 +2,12 @@ package io.github.ntirobonop.paratask.core.data
 
 import io.github.ntirobonop.paratask.core.database.TaskDao
 import io.github.ntirobonop.paratask.core.database.TaskEntity
+import io.github.ntirobonop.paratask.core.database.ProjectDao
+import io.github.ntirobonop.paratask.core.database.ProjectEntity
+import io.github.ntirobonop.paratask.core.database.SectionDao
+import io.github.ntirobonop.paratask.core.database.SectionEntity
+import io.github.ntirobonop.paratask.core.model.ProjectId
+import io.github.ntirobonop.paratask.core.model.SectionId
 import io.github.ntirobonop.paratask.core.model.TaskId
 import java.time.Clock
 import java.time.Instant
@@ -105,6 +111,145 @@ class DefaultTaskRepositoryTest {
             repository.observeTasksInDateRange(monday, monday.minusDays(1))
         }
     }
+
+    @Test
+    fun createTaskPersistsSectionThatBelongsToProject() = runTest {
+        val projectId = ProjectId("project-1")
+        val sectionId = SectionId("section-1")
+        val assignmentRepository = assignmentRepository(
+            projects = listOf(project(projectId.value)),
+            sections = listOf(section(sectionId.value, projectId.value)),
+        )
+
+        assignmentRepository.createTask(
+            title = "Task",
+            description = "",
+            dueDate = null,
+            projectId = projectId,
+            sectionId = sectionId,
+        )
+
+        val task = assignmentRepository.observeTask(taskId).first()
+        assertEquals(projectId, task?.projectId)
+        assertEquals(sectionId, task?.sectionId)
+    }
+
+    @Test
+    fun createTaskRejectsSectionFromAnotherProject() {
+        val projectId = ProjectId("project-1")
+        val otherProjectId = ProjectId("project-2")
+        val sectionId = SectionId("section-1")
+        val assignmentRepository = assignmentRepository(
+            projects = listOf(project(projectId.value), project(otherProjectId.value)),
+            sections = listOf(section(sectionId.value, otherProjectId.value)),
+        )
+
+        assertThrows(IllegalArgumentException::class.java) {
+            runTest {
+                assignmentRepository.createTask(
+                    title = "Task",
+                    description = "",
+                    dueDate = null,
+                    projectId = projectId,
+                    sectionId = sectionId,
+                )
+            }
+        }
+    }
+
+    @Test
+    fun changingProjectClearsIncompatibleSection() = runTest {
+        val firstProjectId = ProjectId("project-1")
+        val secondProjectId = ProjectId("project-2")
+        val sectionId = SectionId("section-1")
+        val assignmentRepository = assignmentRepository(
+            projects = listOf(project(firstProjectId.value), project(secondProjectId.value)),
+            sections = listOf(section(sectionId.value, firstProjectId.value)),
+        )
+        assignmentRepository.createTask(
+            title = "Task",
+            description = "",
+            dueDate = null,
+            projectId = firstProjectId,
+            sectionId = sectionId,
+        )
+
+        val task = requireNotNull(assignmentRepository.observeTask(taskId).first())
+        assignmentRepository.updateTask(task.copy(projectId = secondProjectId))
+
+        val updated = assignmentRepository.observeTask(taskId).first()
+        assertEquals(secondProjectId, updated?.projectId)
+        assertNull(updated?.sectionId)
+    }
+
+    @Test
+    fun editingArchivedTaskPreservesItsExistingProjectAndSection() = runTest {
+        val projectId = ProjectId("project")
+        val sectionId = SectionId("section")
+        val projects = mutableListOf(project(projectId.value))
+        val repository = assignmentRepository(projects, listOf(section(sectionId.value, projectId.value)))
+        repository.createTask("Task", "", null, projectId, sectionId)
+        projects[0] = projects[0].copy(isArchived = true)
+
+        val task = requireNotNull(repository.observeTask(taskId).first())
+        repository.updateTask(task.copy(title = "Edited archived task"))
+
+        val updated = requireNotNull(repository.observeTask(taskId).first())
+        assertEquals("Edited archived task", updated.title)
+        assertEquals(projectId, updated.projectId)
+        assertEquals(sectionId, updated.sectionId)
+    }
+
+    @Test
+    fun assigningNewOrExistingTasksToArchivedProjectIsRejected() = runTest {
+        val projectId = ProjectId("archived")
+        val repository = assignmentRepository(
+            listOf(project(projectId.value).copy(isArchived = true)),
+            emptyList(),
+        )
+        val createError = runCatching {
+            repository.createTask("Task", "", null, projectId, null)
+        }.exceptionOrNull()
+        assertTrue(createError is IllegalArgumentException)
+
+        repository.createTask("Inbox task", "", null)
+        val task = requireNotNull(repository.observeTask(taskId).first())
+        val updateError = runCatching {
+            repository.updateTask(task.copy(projectId = projectId))
+        }.exceptionOrNull()
+        assertTrue(updateError is IllegalArgumentException)
+        assertNull(repository.observeTask(taskId).first()?.projectId)
+    }
+
+    @Test
+    fun movingTaskToInboxClearsSectionAndRejectsNewInboxSection() = runTest {
+        val projectId = ProjectId("project")
+        val sectionId = SectionId("section")
+        val repository = assignmentRepository(
+            listOf(project(projectId.value)),
+            listOf(section(sectionId.value, projectId.value)),
+        )
+        repository.createTask("Task", "", null, projectId, sectionId)
+        val task = requireNotNull(repository.observeTask(taskId).first())
+
+        repository.updateTask(task.copy(projectId = null))
+
+        assertNull(repository.observeTask(taskId).first()?.sectionId)
+        val error = runCatching { repository.createTask("Invalid", "", null, null, sectionId) }
+            .exceptionOrNull()
+        assertTrue(error is IllegalArgumentException)
+    }
+
+    private fun assignmentRepository(
+        projects: List<ProjectEntity>,
+        sections: List<SectionEntity>,
+    ) = DefaultTaskRepository(
+        taskDao = dao,
+        projectDao = AssignmentProjectDao(projects),
+        sectionDao = AssignmentSectionDao(sections),
+        clock = Clock.fixed(instant, ZoneOffset.UTC),
+        idFactory = { taskId },
+    )
 }
 
 private class FakeTaskDao : TaskDao {
@@ -194,3 +339,91 @@ private class FakeTaskDao : TaskDao {
         return changed
     }
 }
+
+private class AssignmentProjectDao(
+    private val projects: List<ProjectEntity>,
+) : ProjectDao {
+    override fun observeActiveProjects(): Flow<List<ProjectEntity>> = MutableStateFlow(projects)
+
+    override fun observeArchivedProjects(): Flow<List<ProjectEntity>> = MutableStateFlow(emptyList())
+
+    override fun observeProject(id: String): Flow<ProjectEntity?> =
+        MutableStateFlow(projects.firstOrNull { it.id == id })
+
+    override suspend fun getProject(id: String): ProjectEntity? =
+        projects.firstOrNull { it.id == id && it.deletedAt == null }
+
+    override suspend fun getActiveProjects(): List<ProjectEntity> =
+        projects.filter { !it.isArchived && it.deletedAt == null }
+
+    override suspend fun getMaxSortOrder(): Long =
+        projects.maxOfOrNull(ProjectEntity::sortOrder) ?: -1
+
+    override suspend fun insertProject(project: ProjectEntity) = error("Not used")
+
+    override suspend fun updateProject(project: ProjectEntity): Int = error("Not used")
+
+    override suspend fun setArchived(id: String, archived: Boolean, updatedAt: Long): Int =
+        error("Not used")
+
+    override suspend fun setSortOrder(id: String, sortOrder: Long, updatedAt: Long): Int =
+        error("Not used")
+
+    override suspend fun clearTaskAssignments(projectId: String, updatedAt: Long) =
+        error("Not used")
+
+    override suspend fun softDeleteProject(projectId: String, deletedAt: Long): Int =
+        error("Not used")
+
+    override suspend fun softDeleteProjectSections(projectId: String, deletedAt: Long) =
+        error("Not used")
+}
+
+private class AssignmentSectionDao(
+    private val sections: List<SectionEntity>,
+) : SectionDao {
+    override fun observeAllSections(): Flow<List<SectionEntity>> = MutableStateFlow(sections)
+
+    override fun observeSections(projectId: String): Flow<List<SectionEntity>> =
+        MutableStateFlow(sections.filter { it.projectId == projectId })
+
+    override fun observeSection(id: String): Flow<SectionEntity?> =
+        MutableStateFlow(sections.firstOrNull { it.id == id })
+
+    override suspend fun getSection(id: String): SectionEntity? =
+        sections.firstOrNull { it.id == id && it.deletedAt == null }
+
+    override suspend fun getMaxSortOrder(projectId: String): Long =
+        sections.filter { it.projectId == projectId }.maxOfOrNull(SectionEntity::sortOrder) ?: -1
+
+    override suspend fun insertSection(section: SectionEntity) = error("Not used")
+
+    override suspend fun updateSection(section: SectionEntity): Int = error("Not used")
+
+    override suspend fun clearTaskAssignments(sectionId: String, updatedAt: Long) = error("Not used")
+
+    override suspend fun softDeleteSection(sectionId: String, deletedAt: Long): Int =
+        error("Not used")
+}
+
+private fun project(id: String) = ProjectEntity(
+    id = id,
+    name = id,
+    color = 0,
+    icon = "LIST",
+    isArchived = false,
+    createdAt = 10,
+    updatedAt = 10,
+    deletedAt = null,
+    sortOrder = 0,
+)
+
+private fun section(id: String, projectId: String) = SectionEntity(
+    id = id,
+    projectId = projectId,
+    name = id,
+    createdAt = 10,
+    updatedAt = 10,
+    deletedAt = null,
+    sortOrder = 0,
+)

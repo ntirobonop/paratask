@@ -15,6 +15,7 @@ class MainActivity : ComponentActivity() {
                 ParaTaskApp(
                     taskRepository = (application as ParaTaskApplication).taskRepository,
                     projectRepository = (application as ParaTaskApplication).projectRepository,
+                    sectionRepository = (application as ParaTaskApplication).sectionRepository,
                 )
             }
         }

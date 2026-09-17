@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.ntirobonop.paratask.core.data.ProjectRepository
+import io.github.ntirobonop.paratask.core.data.SectionRepository
 import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.ProjectId
 import io.github.ntirobonop.paratask.core.model.TaskId
@@ -28,11 +29,17 @@ import kotlinx.coroutines.launch
 fun ParaTaskApp(
     taskRepository: TaskRepository,
     projectRepository: ProjectRepository,
+    sectionRepository: SectionRepository,
     today: LocalDate = LocalDate.now(),
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val activeProjects by projectRepository.observeActiveProjects()
+        .collectAsStateWithLifecycle(emptyList())
+    val archivedProjects by projectRepository.observeArchivedProjects()
+        .collectAsStateWithLifecycle(emptyList())
+    val taskProjects = activeProjects + archivedProjects
+    val sections by sectionRepository.observeAllSections()
         .collectAsStateWithLifecycle(emptyList())
     var selectedTaskId by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedProjectId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -66,14 +73,17 @@ fun ParaTaskApp(
                     }
                 }
             },
-            activeProjects = activeProjects,
+            projects = taskProjects,
+            sections = sections,
         )
 
         projectId != null -> ProjectRoute(
             projectId = projectId,
             taskRepository = taskRepository,
             projectRepository = projectRepository,
+            sectionRepository = sectionRepository,
             activeProjects = activeProjects,
+            allSections = sections,
             snackbarHostState = snackbarHostState,
             onBack = { selectedProjectId = null },
             onOpenTask = { selectedTaskId = it.value },
@@ -94,6 +104,7 @@ fun ParaTaskApp(
                     selectedDestination = TopLevelDestination.BROWSE.name
                 },
                 activeProjects = activeProjects,
+                sections = sections,
             )
 
             TopLevelDestination.TODAY -> TodayRoute(
@@ -110,6 +121,8 @@ fun ParaTaskApp(
                     selectedDestination = TopLevelDestination.BROWSE.name
                 },
                 activeProjects = activeProjects,
+                taskProjects = taskProjects,
+                sections = sections,
                 today = today,
             )
 
@@ -127,6 +140,8 @@ fun ParaTaskApp(
                     selectedDestination = TopLevelDestination.BROWSE.name
                 },
                 activeProjects = activeProjects,
+                taskProjects = taskProjects,
+                sections = sections,
                 today = today,
             )
 

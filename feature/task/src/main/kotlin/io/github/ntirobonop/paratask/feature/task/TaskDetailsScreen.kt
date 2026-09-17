@@ -43,9 +43,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.ntirobonop.paratask.core.data.TaskRepository
 import io.github.ntirobonop.paratask.core.model.Project
 import io.github.ntirobonop.paratask.core.model.ProjectId
+import io.github.ntirobonop.paratask.core.model.Section
+import io.github.ntirobonop.paratask.core.model.SectionId
 import io.github.ntirobonop.paratask.core.model.TaskId
 import io.github.ntirobonop.paratask.core.ui.TaskDateField
 import io.github.ntirobonop.paratask.core.ui.TaskProjectField
+import io.github.ntirobonop.paratask.core.ui.TaskSectionField
 import java.time.LocalDate
 
 @Composable
@@ -55,7 +58,8 @@ fun TaskDetailsRoute(
     snackbarHostState: SnackbarHostState,
     onClose: () -> Unit,
     onDeleted: (TaskId) -> Unit,
-    activeProjects: List<Project> = emptyList(),
+    projects: List<Project> = emptyList(),
+    sections: List<Section> = emptyList(),
     modifier: Modifier = Modifier,
     viewModel: TaskDetailsViewModel = viewModel(
         key = taskId.value,
@@ -83,10 +87,12 @@ fun TaskDetailsRoute(
         onDescriptionChange = viewModel::updateDescription,
         onDateChange = viewModel::updateDueDate,
         onProjectChange = viewModel::updateProject,
+        onSectionChange = viewModel::updateSection,
         onCompletedChange = viewModel::setCompleted,
         onBack = viewModel::navigateBack,
         onDelete = viewModel::deleteTask,
-        activeProjects = activeProjects,
+        projects = projects,
+        sections = sections,
         modifier = modifier,
     )
 }
@@ -103,7 +109,9 @@ fun TaskDetailsScreen(
     onDelete: () -> Unit,
     onDateChange: (LocalDate?) -> Unit = {},
     onProjectChange: (ProjectId?) -> Unit = {},
-    activeProjects: List<Project> = emptyList(),
+    onSectionChange: (SectionId?) -> Unit = {},
+    projects: List<Project> = emptyList(),
+    sections: List<Section> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     var showActions by remember { mutableStateOf(false) }
@@ -175,7 +183,9 @@ fun TaskDetailsScreen(
                 onDescriptionChange = onDescriptionChange,
                 onDateChange = onDateChange,
                 onProjectChange = onProjectChange,
-                activeProjects = activeProjects,
+                onSectionChange = onSectionChange,
+                projects = projects,
+                sections = sections,
                 onCompletedChange = onCompletedChange,
                 modifier = Modifier
                     .fillMaxSize()
@@ -192,7 +202,9 @@ private fun TaskEditor(
     onDescriptionChange: (String) -> Unit,
     onDateChange: (LocalDate?) -> Unit,
     onProjectChange: (ProjectId?) -> Unit,
-    activeProjects: List<Project>,
+    onSectionChange: (SectionId?) -> Unit,
+    projects: List<Project>,
+    sections: List<Section>,
     onCompletedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -245,8 +257,14 @@ private fun TaskEditor(
         )
         TaskProjectField(
             projectId = uiState.projectId,
-            projects = activeProjects,
+            projects = projects,
             onProjectChange = onProjectChange,
+        )
+        TaskSectionField(
+            projectId = uiState.projectId,
+            sectionId = uiState.sectionId,
+            sections = sections,
+            onSectionChange = onSectionChange,
         )
     }
 }
